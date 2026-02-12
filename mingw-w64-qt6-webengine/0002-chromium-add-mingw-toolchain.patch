@@ -25,7 +25,7 @@ index 03af261..f0882e5 100644
  #define BASE_STRING16_ITERATOR_IS_CHAR16_POINTER
  #endif
  
-+#if defined(OS_WIN) && defined(COMPILER_GCC)
++#if defined(OS_WIN) && defined(COMPILER_GCC) && __cpp_exceptions
 +#undef __try
 +#define __try try
 +#undef __except

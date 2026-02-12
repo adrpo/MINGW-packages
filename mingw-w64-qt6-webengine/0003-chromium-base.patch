@@ -935,3 +935,16 @@ index 04bd7ae..4ef60dd 100644
  #error VS 2017 Update 3.2 or higher is required
  #endif
  
+diff --git a/src/3rdparty/chromium/base/check.h b/src/3rdparty/chromium/base/check.h
+index 8c40d50..a09ef31 100644
+--- a/src/3rdparty/chromium/base/check.h
++++ b/src/3rdparty/chromium/base/check.h
+@@ -226,7 +226,7 @@ class BASE_EXPORT NotReachedNoreturnError : public CheckError {
+           UNLIKELY(!(condition)) ? logging::CheckFailure()    \
+                                  : EAT_CHECK_STREAM_PARAMS(), \
+           LOGGING_CHECK_FUNCTION_IMPL(                        \
+-              logging::CheckError::Check(#condition, __VA_ARGS__), condition))
++              logging::CheckError::Check(#condition __VA_OPT__(, ) __VA_ARGS__), condition))
+
+ #define CHECK_WILL_STREAM() false
+

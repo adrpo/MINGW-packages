@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/third_party/ffmpeg/BUILD.gn b/src/3rdparty/chromium/third_party/ffmpeg/BUILD.gn
-index c04ed59..2ded187 100644
+index c04ed592b0..2ded187a64 100644
 --- a/src/3rdparty/chromium/third_party/ffmpeg/BUILD.gn
 +++ b/src/3rdparty/chromium/third_party/ffmpeg/BUILD.gn
 @@ -89,7 +89,7 @@ config("ffmpeg_dependent_config") {
@@ -51,7 +51,7 @@ index c04ed59..2ded187 100644
        "_ISOC99_SOURCE",
        "_LARGEFILE_SOURCE",
 diff --git a/src/3rdparty/chromium/third_party/ffmpeg/libavutil/internal.h b/src/3rdparty/chromium/third_party/ffmpeg/libavutil/internal.h
-index 6937169..f2b4b61 100644
+index 693716911d..f2b4b61d88 100644
 --- a/src/3rdparty/chromium/third_party/ffmpeg/libavutil/internal.h
 +++ b/src/3rdparty/chromium/third_party/ffmpeg/libavutil/internal.h
 @@ -123,7 +123,7 @@ void avpriv_request_sample(void *avc,
@@ -63,3 +63,19 @@ index 6937169..f2b4b61 100644
  #include <crtversion.h>
  #if defined(_VC_CRT_MAJOR_VERSION) && _VC_CRT_MAJOR_VERSION < 14
  #pragma comment(linker, "/include:" EXTERN_PREFIX "avpriv_strtod")
+diff --git a/src/3rdparty/chromium/third_party/ffmpeg/libavutil/hwcontext_d3d12va.h b/src/3rdparty/chromium/third_party/ffmpeg/libavutil/hwcontext_d3d12va.h
+index 212a6a6146..24022b150c 100644
+--- a/src/3rdparty/chromium/third_party/ffmpeg/libavutil/hwcontext_d3d12va.h
++++ b/src/3rdparty/chromium/third_party/ffmpeg/libavutil/hwcontext_d3d12va.h
+@@ -34,7 +34,11 @@
+ #include <initguid.h>
+ #include <d3d12.h>
+ #include <d3d12sdklayers.h>
++#if defined(__MINGW32__)
++#include <directx/d3d12video.h>
++#else
+ #include <d3d12video.h>
++#endif
+ 
+ /**
+  * @brief This struct is allocated as AVHWDeviceContext.hwctx

@@ -1,5 +1,5 @@
 diff --git a/configure.cmake b/configure.cmake
-index 931071f..13e6498 100644
+index 931071fb84..13e649807a 100644
 --- a/configure.cmake
 +++ b/configure.cmake
 @@ -31,7 +31,9 @@ qt_webengine_set_version(libavutil 58.29.100)
@@ -187,11 +187,53 @@ index c692c78..7f8130a 100644
                  host_cpu="${host_cpu}"
              )
          else()
+diff --git "a/cmake/QtGnSbom.cmake" "b/cmake/QtGnSbom.cmake"
+index eb5187df8e..1986e5c87d 100644
+--- "a/cmake/QtGnSbom.cmake"
++++ "b/cmake/QtGnSbom.cmake"
+@@ -37,14 +37,16 @@ else()
+     set(SCRIPT_VERBOSE "")
+ endif()
+ 
++message(INFO, "Command:" "${Python3_EXECUTABLE} ${SCRIPT_PATH} --gn-binary ${Gn_EXECUTABLE} --gn-target-list \"${GN_TARGET_LIST}\" --build-dir-list \"${BUILD_DIR_LIST}\" --gn-version ${Gn_VERSION} --package-id ${PACKAGE_ID} --namespace \"${DOC_NAMESPACE}\" ${SCRIPT_VERBOSE} ${OUTPUT}")
++
+ execute_process(
+     COMMAND "${Python3_EXECUTABLE}" "${SCRIPT_PATH}"
+         --gn-binary "${Gn_EXECUTABLE}"
+-        --gn-target-list "${GN_TARGET_LIST}"
+-        --build-dir-list "${BUILD_DIR_LIST}"
++        --gn-target-list "\"${GN_TARGET_LIST}\""
++        --build-dir-list "\"${BUILD_DIR_LIST}\""
+         --gn-version ${Gn_VERSION}
+         --package-id ${PACKAGE_ID}
+-        --namespace "${DOC_NAMESPACE}"
++        --namespace "\"${DOC_NAMESPACE}\""
+         ${SCRIPT_VERBOSE}
+         "${OUTPUT}"
+     RESULT_VARIABLE gn_result
+diff --git a/src/core/api/qtwebenginecoreglobal_p.h b/src/core/api/qtwebenginecoreglobal_p.h
+index f150c59fc1..347842fafd 100644
+--- a/src/core/api/qtwebenginecoreglobal_p.h
++++ b/src/core/api/qtwebenginecoreglobal_p.h
+@@ -34,13 +34,11 @@
+ // building with older versions up to and including the last LTS release (6.8), we can't simply
+ // switch to using Q_STATIC_LOGGING_CATEGORY. This file and the macro definition within
+ // are intended to be removed in the next Qt 6 LTS release.
+-#if QT_VERSION < QT_VERSION_CHECK(6, 11, 0)
+ #if defined(Q_STATIC_LOGGING_CATEGORY)
+ #define Q_WEBENGINE_LOGGING_CATEGORY(name, ...) Q_STATIC_LOGGING_CATEGORY(name, __VA_ARGS__)
+ #else
+ #define Q_WEBENGINE_LOGGING_CATEGORY(name, ...) Q_LOGGING_CATEGORY(name, __VA_ARGS__)
+ #endif
+-#endif
+ 
+ namespace QtWebEngineCore {
+ Q_WEBENGINECORE_EXPORT int processMain(int argc, const char **argv);
 diff --git a/src/core/api/CMakeLists.txt b/src/core/api/CMakeLists.txt
-index 970c071..340fd7f 100644
+index 970c071fd6..6350a30b1c 100644
 --- a/src/core/api/CMakeLists.txt
 +++ b/src/core/api/CMakeLists.txt
-@@ -89,6 +89,7 @@ if(CLANG OR GCC)
+@@ -89,12 +89,14 @@ if(CLANG OR GCC)
      target_compile_options(WebEngineCore PRIVATE
          "-Wno-unused-parameter"
          "-Wno-expansion-to-defined"
@@ -199,8 +241,52 @@ index 970c071..340fd7f 100644
      )
  endif()
  
+ if(GCC)
+     target_compile_options(WebEngineCore PRIVATE
+         "-Wno-packed-not-aligned"
++        "-Wno-template-body"
+     )
+ endif()
+ 
+@@ -256,3 +258,36 @@
+         )
+    endif()
+ endif()
++
++# Strip debug info from chromium archives and loose objects pulled into
++# the Qt6WebEngineCore.dll link, so .debug_info stays under the COFF
++# 4 GiB section limit. Runs as a PRE_LINK step on WebEngineCore. Driven
++# by the linker rsp files (archives.rsp, objects.rsp, libs.rsp), which
++# CMake regenerates before each link, so the universe matches exactly
++# what the linker sees. Two CMake list vars decide what to keep:
++#   CHROMIUM_DEBUG_STRIP_KEEP_PREFIXES - chromium-relative source paths
++#   CHROMIUM_DEBUG_STRIP_KEEP_ARCHIVES - globs against archive paths
++# Both vars are CMake lists; separate multiple entries with ';'.
++# Activated when CHROMIUM_DEBUG_STRIP_TOOL and CHROMIUM_DEBUG_STRIP_BUILD_DIR
++# are set. Orphan archives/objects (Qt-built, not in chromium GN) are kept.
++if(MINGW AND DEFINED CHROMIUM_DEBUG_STRIP_TOOL)
++    set(_qtwe_keep_args "")
++    foreach(_qtwe_keep_prefix ${CHROMIUM_DEBUG_STRIP_KEEP_PREFIXES})
++        list(APPEND _qtwe_keep_args --keep-prefix "${_qtwe_keep_prefix}")
++    endforeach()
++    foreach(_qtwe_keep_archive ${CHROMIUM_DEBUG_STRIP_KEEP_ARCHIVES})
++        list(APPEND _qtwe_keep_args --keep-archive "${_qtwe_keep_archive}")
++    endforeach()
++    set(_qtwe_rsp_base "${CMAKE_BINARY_DIR}/CMakeFiles_QtWebEngineCore_${CMAKE_BUILD_TYPE}")
++    add_custom_command(TARGET WebEngineCore PRE_LINK
++        COMMAND "${Python3_EXECUTABLE}"
++                "${CHROMIUM_DEBUG_STRIP_TOOL}"
++                --build-dir "${CHROMIUM_DEBUG_STRIP_BUILD_DIR}"
++                --rsp-file "${_qtwe_rsp_base}_archives.rsp"
++                --rsp-file "${_qtwe_rsp_base}_objects.rsp"
++                --rsp-file "${_qtwe_rsp_base}_libs.rsp"
++                ${_qtwe_keep_args}
++                --quiet
++        COMMENT "Stripping chromium debug info (PRE_LINK on WebEngineCore)"
++        VERBATIM)
++endif()
 diff --git a/src/core/CMakeLists.txt b/src/core/CMakeLists.txt
-index eb83a82..d636b2f 100644
+index eb83a82179..8d3d02b1f2 100644
 --- a/src/core/CMakeLists.txt
 +++ b/src/core/CMakeLists.txt
 @@ -615,6 +615,54 @@ foreach(arch ${archs})
@@ -216,9 +302,9 @@ index eb83a82..d636b2f 100644
 +                use_gio=false
 +                use_glib=false
 +                use_gtk=false
-+                use_v8_context_snapshot=false
++                use_v8_context_snapshot=true
 +                v8_enable_etw_stack_walking=false
-+                v8_use_external_startup_data=false
++                v8_use_external_startup_data=true
 +            )
 +            set(systemLibs libjpeg libpng freetype harfbuzz libwebp libxml
 +                opus snappy icu ffmpeg lcms2 libopenjpeg2 libvpx
@@ -258,8 +344,43 @@ index eb83a82..d636b2f 100644
          add_gn_command(
              CMAKE_TARGET WebEngineCore
              NINJA_TARGETS QtWebEngineCore convert_dict
+@@ -666,24 +714,31 @@ endif()
+ #  SANDBOX
+ ##
+ 
++if(MINGW)
++SET(QtWebEngineCoreSandbox_prefix "lib")
++SET(QtWebEngineCoreSandbox_suffix ".a")
++else(MINGW)
++SET(QtWebEngineCoreSandbox_suffix ".lib")
++endif(MINGW)
++
+ if(WIN32)
+     add_library(WebEngineCoreSandbox STATIC IMPORTED GLOBAL)
+     foreach(config ${configs})
+         string(TOUPPER ${config} cfg)
+         add_ninja_command(
+             TARGET QtWebEngineCoreSandbox
+-            OUTPUT QtWebEngineCoreSandbox.lib
++            OUTPUT ${QtWebEngineCoreSandbox_prefix}QtWebEngineCoreSandbox${QtWebEngineCoreSandbox_suffix}
+             BUILDDIR ${buildDir}/${config}/${arch}
+             DEPENDS WebEngineCore_sync_headers
+             MODULE core
+         )
+         qt_webengine_add_gn_target_to_sbom(QtWebEngineCoreSandbox ${buildDir}/${config}/${arch})
+-        set(sandboxLibraryPath ${buildDir}/${config}/${arch}/QtWebEngineCoreSandbox.lib)
++        set(sandboxLibraryPath ${buildDir}/${config}/${arch}/${QtWebEngineCoreSandbox_prefix}QtWebEngineCoreSandbox${QtWebEngineCoreSandbox_suffix})
+         set_property(TARGET WebEngineCoreSandbox
+             PROPERTY IMPORTED_LOCATION_${cfg} ${sandboxLibraryPath}
+         )
+         add_custom_target(sandboxLibrary_${config}
+-            DEPENDS ${buildDir}/${config}/${arch}/QtWebEngineCoreSandbox.lib)
++            DEPENDS ${buildDir}/${config}/${arch}/${QtWebEngineCoreSandbox_prefix}QtWebEngineCoreSandbox${QtWebEngineCoreSandbox_suffix})
+         add_dependencies(run_core_NinjaDone sandboxLibrary_${config})
+         add_dependencies(WebEngineCoreSandbox WebEngineCore)
+     endforeach()
 diff --git a/src/core/configure/BUILD.root.gn.in b/src/core/configure/BUILD.root.gn.in
-index 0e611c2..c1965c7 100644
+index 0e611c2947..9bc208744b 100644
 --- a/src/core/configure/BUILD.root.gn.in
 +++ b/src/core/configure/BUILD.root.gn.in
 @@ -78,6 +78,19 @@ config("QtWebEngineCore_config") {
@@ -291,8 +412,48 @@ index 0e611c2..c1965c7 100644
      cflags_cc = [ "/std:c++20" ]
    } else if(is_gcc) {
      cflags_cc = [ "-std=gnu++20" ]
+@@ -187,6 +200,7 @@ shared_library("QtWebEngineCore") {
+     configs -= [ "//build/config/compiler:no_rtti" ]
+     configs += [ "//build/config/compiler:rtti" ]
+     data_deps += [ ":QtWebEngineCoreSandbox" ]
++    deps += [ ":QtWebEngineCoreSandbox" ]
+   }
+   if (use_embedded_config) {
+     configs += [ ":embedded_config" ]
+@@ -570,7 +584,7 @@ source_set("qtwebengine_sources") {
+   }
+ }
+ 
+-if (is_win) {
++if (is_msvc) {
+   static_library("QtWebEngineCoreSandbox") {
+     complete_static_lib = true
+     configs += [ ":cpp20_config",
+@@ -585,6 +599,22 @@ if (is_win) {
+   }
+ }
+ 
++if (is_mingw) {
++  static_library("QtWebEngineCoreSandbox") {
++    complete_static_lib = true
++    configs += [ ":cpp20_config",
++                 ":QtWebEngineCore_config",
++                 "//build/config:precompiled_headers"
++    ]
++    output_dir = "$root_out_dir"
++    sources = [
++      "@GN_SOURCE_ROOT@/sandbox_win.cpp"
++    ]
++    public_deps = [ "//sandbox/win:sandbox" ]
++  }
++}
++
++
+ group("qtwebengine_resources") {
+   deps = [
+       "//chrome/app:generated_resources",
 diff --git a/src/pdf/configure/BUILD.root.gn.in b/src/pdf/configure/BUILD.root.gn.in
-index e9f54ed..5033aa1 100644
+index e9f54ed6d0..5033aa1233 100644
 --- a/src/pdf/configure/BUILD.root.gn.in
 +++ b/src/pdf/configure/BUILD.root.gn.in
 @@ -41,7 +41,7 @@ config("QtPdf_config") {
@@ -305,17 +466,39 @@ index e9f54ed..5033aa1 100644
    } else {
      cflags_cc = [ "-std=c++20" ]
 diff --git a/src/process/CMakeLists.txt b/src/process/CMakeLists.txt
-index 37bca3b..74d1616 100644
+index 37bca3b4c5..e5307f47a4 100644
 --- a/src/process/CMakeLists.txt
 +++ b/src/process/CMakeLists.txt
-@@ -33,7 +33,11 @@ if(WIN32)
+@@ -29,11 +29,32 @@ qt_internal_add_app(${qtWebEngineProcessName}
+ if(WIN32)
+     target_sources(${qtWebEngineProcessName} PRIVATE support_win.cpp)
+     target_sources(${qtWebEngineProcessName} PRIVATE QtWebEngineProcess.exe.manifest)
+-    target_link_libraries(${qtWebEngineProcessName} PRIVATE WebEngineCoreSandbox)
      set_property(TARGET ${qtWebEngineProcessName} PROPERTY WIN32_EXECUTABLE TRUE)
      # get libs rsp file, since cmake is not aware of PUBLIC libs for WebEngineCore
      get_target_property(libs_rsp WebEngineCore LIBS_RSP)
 -    target_link_options(${qtWebEngineProcessName} PRIVATE "@${libs_rsp}" "/STACK:0x800000")
-+    if(MSVC)
++    if(MINGW)
++        # GNU ld is single-pass; libQtWebEngineCoreSandbox.a references symbols
++        # from system import libs in libs_rsp, so wrap them in --start-group so
++        # the linker iterates until all references resolve. The whole group is
++        # passed as one $<1:...>-wrapped string starting with -Wl so CMake does
++        # not split it and prepend -l to the @response_file argument (which
++        # would yield "-l@CMakeFiles_..._libs.rsp"). $<TARGET_FILE:> can't be
++        # used on WebEngineCoreSandbox because IMPORTED_CONFIGURATIONS is not
++        # set; read its IMPORTED_LOCATION_<CONFIG> directly instead.
++        string(TOUPPER "${CMAKE_BUILD_TYPE}" _qtwe_cfg_upper)
++        get_target_property(_qtwe_sandbox_lib WebEngineCoreSandbox
++            IMPORTED_LOCATION_${_qtwe_cfg_upper})
++        add_dependencies(${qtWebEngineProcessName} WebEngineCoreSandbox)
++        target_link_libraries(${qtWebEngineProcessName} PRIVATE
++            "$<1:-Wl,--start-group ${_qtwe_sandbox_lib} @${libs_rsp} -Wl,--end-group>")
++        target_link_options(${qtWebEngineProcessName} PRIVATE "-Wl,--stack,800000")
++    elseif(MSVC)
++        target_link_libraries(${qtWebEngineProcessName} PRIVATE WebEngineCoreSandbox)
 +        target_link_options(${qtWebEngineProcessName} PRIVATE "@${libs_rsp}" "/STACK:0x800000")
 +    else()
++        target_link_libraries(${qtWebEngineProcessName} PRIVATE WebEngineCoreSandbox)
 +        target_link_options(${qtWebEngineProcessName} PRIVATE "@${libs_rsp}" "-Wl,--stack,800000")
 +    endif()
  endif()

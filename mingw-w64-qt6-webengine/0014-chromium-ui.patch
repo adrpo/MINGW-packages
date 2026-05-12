@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/ui/accessibility/ax_text_attributes.h b/src/3rdparty/chromium/ui/accessibility/ax_text_attributes.h
-index 001c839..f4fdd11 100644
+index 001c8395ea..f4fdd110f7 100644
 --- a/src/3rdparty/chromium/ui/accessibility/ax_text_attributes.h
 +++ b/src/3rdparty/chromium/ui/accessibility/ax_text_attributes.h
 @@ -5,6 +5,7 @@
@@ -11,7 +11,7 @@ index 001c839..f4fdd11 100644
  #include <vector>
  
 diff --git a/src/3rdparty/chromium/ui/aura/BUILD.gn b/src/3rdparty/chromium/ui/aura/BUILD.gn
-index 65f84ba..083fd86 100644
+index 65f84baefd..083fd862a4 100644
 --- a/src/3rdparty/chromium/ui/aura/BUILD.gn
 +++ b/src/3rdparty/chromium/ui/aura/BUILD.gn
 @@ -166,7 +166,12 @@ jumbo_component("aura") {
@@ -29,7 +29,7 @@ index 65f84ba..083fd86 100644
        "wtsapi32.lib",
        "dwmapi.lib",
 diff --git a/src/3rdparty/chromium/ui/base/BUILD.gn b/src/3rdparty/chromium/ui/base/BUILD.gn
-index 903993c..55fae4c 100644
+index 903993c48d..55fae4cf2b 100644
 --- a/src/3rdparty/chromium/ui/base/BUILD.gn
 +++ b/src/3rdparty/chromium/ui/base/BUILD.gn
 @@ -293,11 +293,19 @@ jumbo_component("base") {
@@ -58,7 +58,7 @@ index 903993c..55fae4c 100644
  
    if (is_mac) {
 diff --git a/src/3rdparty/chromium/ui/base/ime/init/input_method_factory.cc b/src/3rdparty/chromium/ui/base/ime/init/input_method_factory.cc
-index c99fd18..a30da75 100644
+index c99fd18826..a30da75894 100644
 --- a/src/3rdparty/chromium/ui/base/ime/init/input_method_factory.cc
 +++ b/src/3rdparty/chromium/ui/base/ime/init/input_method_factory.cc
 @@ -12,7 +12,7 @@
@@ -80,7 +80,7 @@ index c99fd18..a30da75 100644
  #elif BUILDFLAG(IS_APPLE)
    return std::make_unique<InputMethodMac>(ime_key_event_dispatcher);
 diff --git a/src/3rdparty/chromium/ui/base/ime/init/input_method_initializer.cc b/src/3rdparty/chromium/ui/base/ime/init/input_method_initializer.cc
-index ce9d6fe..2623229 100644
+index ce9d6fe867..2623229fec 100644
 --- a/src/3rdparty/chromium/ui/base/ime/init/input_method_initializer.cc
 +++ b/src/3rdparty/chromium/ui/base/ime/init/input_method_initializer.cc
 @@ -12,7 +12,7 @@
@@ -127,7 +127,7 @@ index ce9d6fe..2623229 100644
  #endif
  }
 diff --git a/src/3rdparty/chromium/ui/base/ime/input_method.h b/src/3rdparty/chromium/ui/base/ime/input_method.h
-index 03d9c95..74c0d32 100644
+index 03d9c951f5..74c0d329c8 100644
 --- a/src/3rdparty/chromium/ui/base/ime/input_method.h
 +++ b/src/3rdparty/chromium/ui/base/ime/input_method.h
 @@ -47,7 +47,7 @@ class TextInputClient;
@@ -149,7 +149,7 @@ index 03d9c95..74c0d32 100644
    // translated into other predefined event callbacks. Currently this method is
    // used only for IME functionalities specific to Windows.
 diff --git a/src/3rdparty/chromium/ui/base/ime/mock_input_method.cc b/src/3rdparty/chromium/ui/base/ime/mock_input_method.cc
-index 2218718..d9da6b7 100644
+index 2218718a5e..d9da6b7482 100644
 --- a/src/3rdparty/chromium/ui/base/ime/mock_input_method.cc
 +++ b/src/3rdparty/chromium/ui/base/ime/mock_input_method.cc
 @@ -67,7 +67,7 @@ void MockInputMethod::OnBlur() {
@@ -162,7 +162,7 @@ index 2218718..d9da6b7 100644
                                                 NativeEventResult* result) {
    if (result)
 diff --git a/src/3rdparty/chromium/ui/base/ime/mock_input_method.h b/src/3rdparty/chromium/ui/base/ime/mock_input_method.h
-index aa57ed6..c88e910 100644
+index aa57ed631d..c88e91019c 100644
 --- a/src/3rdparty/chromium/ui/base/ime/mock_input_method.h
 +++ b/src/3rdparty/chromium/ui/base/ime/mock_input_method.h
 @@ -38,7 +38,7 @@ class COMPONENT_EXPORT(UI_BASE_IME) MockInputMethod : public InputMethod {
@@ -175,7 +175,7 @@ index aa57ed6..c88e910 100644
                                  NativeEventResult* result) override;
    void OnInputLocaleChanged() override;
 diff --git a/src/3rdparty/chromium/ui/base/ime/win/BUILD.gn b/src/3rdparty/chromium/ui/base/ime/win/BUILD.gn
-index 9db7511..ec8bcdd 100644
+index 9db7511f41..ec8bcdda5f 100644
 --- a/src/3rdparty/chromium/ui/base/ime/win/BUILD.gn
 +++ b/src/3rdparty/chromium/ui/base/ime/win/BUILD.gn
 @@ -30,7 +30,24 @@ jumbo_component("win") {
@@ -205,7 +205,7 @@ index 9db7511..ec8bcdd 100644
    defines = [ "IS_UI_BASE_IME_WIN_IMPL" ]
  
 diff --git a/src/3rdparty/chromium/ui/base/ime/win/input_method_win_base.cc b/src/3rdparty/chromium/ui/base/ime/win/input_method_win_base.cc
-index a21238e..aaf5886 100644
+index a21238ed07..aaf5886170 100644
 --- a/src/3rdparty/chromium/ui/base/ime/win/input_method_win_base.cc
 +++ b/src/3rdparty/chromium/ui/base/ime/win/input_method_win_base.cc
 @@ -42,10 +42,14 @@ constexpr size_t kExtraNumberOfChars = 20;
@@ -224,7 +224,7 @@ index a21238e..aaf5886 100644
          attached_window_handle);
    }
 diff --git a/src/3rdparty/chromium/ui/base/ime/win/on_screen_keyboard_display_manager_input_pane.h b/src/3rdparty/chromium/ui/base/ime/win/on_screen_keyboard_display_manager_input_pane.h
-index f89b23d..e43e369 100644
+index f89b23d784..e43e369f59 100644
 --- a/src/3rdparty/chromium/ui/base/ime/win/on_screen_keyboard_display_manager_input_pane.h
 +++ b/src/3rdparty/chromium/ui/base/ime/win/on_screen_keyboard_display_manager_input_pane.h
 @@ -5,6 +5,8 @@
@@ -244,7 +244,7 @@ index f89b23d..e43e369 100644
 +
  #endif  // UI_BASE_IME_WIN_ON_SCREEN_KEYBOARD_DISPLAY_MANAGER_INPUT_PANE_H_
 diff --git a/src/3rdparty/chromium/ui/display/BUILD.gn b/src/3rdparty/chromium/ui/display/BUILD.gn
-index 180c1a9..1780e8b 100644
+index 180c1a92c8..1780e8bd04 100644
 --- a/src/3rdparty/chromium/ui/display/BUILD.gn
 +++ b/src/3rdparty/chromium/ui/display/BUILD.gn
 @@ -98,6 +98,12 @@ jumbo_component("display") {
@@ -276,7 +276,7 @@ index 180c1a9..1780e8b 100644
  
    if (use_aura) {
 diff --git a/src/3rdparty/chromium/ui/display/win/display_config_helper.cc b/src/3rdparty/chromium/ui/display/win/display_config_helper.cc
-index fc7a50d..6bc1daf 100644
+index fc7a50d02e..6bc1daf7b3 100644
 --- a/src/3rdparty/chromium/ui/display/win/display_config_helper.cc
 +++ b/src/3rdparty/chromium/ui/display/win/display_config_helper.cc
 @@ -4,6 +4,7 @@
@@ -288,7 +288,7 @@ index fc7a50d..6bc1daf 100644
  
  namespace display::win {
 diff --git a/src/3rdparty/chromium/ui/display/win/dpi.cc b/src/3rdparty/chromium/ui/display/win/dpi.cc
-index cc3c603..2e91de8 100644
+index cc3c6039af..2e91de82a6 100644
 --- a/src/3rdparty/chromium/ui/display/win/dpi.cc
 +++ b/src/3rdparty/chromium/ui/display/win/dpi.cc
 @@ -8,7 +8,9 @@
@@ -312,7 +312,7 @@ index cc3c603..2e91de8 100644
  
  namespace internal {
 diff --git a/src/3rdparty/chromium/ui/display/win/screen_win.cc b/src/3rdparty/chromium/ui/display/win/screen_win.cc
-index 0d27762..70fcc1d 100644
+index 0d277625e3..70fcc1d92a 100644
 --- a/src/3rdparty/chromium/ui/display/win/screen_win.cc
 +++ b/src/3rdparty/chromium/ui/display/win/screen_win.cc
 @@ -65,9 +65,13 @@ std::optional<int> GetPerMonitorDPI(HMONITOR monitor) {
@@ -359,7 +359,7 @@ index 0d27762..70fcc1d 100644
  bool ScreenWin::PerProcessDPIAwarenessDisabledForTesting() const {
    return per_process_dpi_awareness_disabled_for_testing_;
 diff --git a/src/3rdparty/chromium/ui/display/win/screen_win.h b/src/3rdparty/chromium/ui/display/win/screen_win.h
-index 19aefcf..6efba30 100644
+index 19aefcf229..6efba30dc5 100644
 --- a/src/3rdparty/chromium/ui/display/win/screen_win.h
 +++ b/src/3rdparty/chromium/ui/display/win/screen_win.h
 @@ -40,8 +40,12 @@ class DisplayInfo;
@@ -398,7 +398,7 @@ index 19aefcf..6efba30 100644
    // Used to avoid calling GetSystemMetricsForDpi in unit tests.
    bool per_process_dpi_awareness_disabled_for_testing_ = false;
 diff --git a/src/3rdparty/chromium/ui/events/BUILD.gn b/src/3rdparty/chromium/ui/events/BUILD.gn
-index 8e3b944..1aa519d 100644
+index 8e3b944d8f..1aa519dd7c 100644
 --- a/src/3rdparty/chromium/ui/events/BUILD.gn
 +++ b/src/3rdparty/chromium/ui/events/BUILD.gn
 @@ -250,6 +250,10 @@ jumbo_component("events") {
@@ -424,7 +424,7 @@ index 8e3b944..1aa519d 100644
      sources += [ "gesture_detection/gesture_configuration_android.cc" ]
    } else if (is_ios) {
 diff --git a/src/3rdparty/chromium/ui/gfx/BUILD.gn b/src/3rdparty/chromium/ui/gfx/BUILD.gn
-index 9e55ad4..398f962 100644
+index 9e55ad4982..398f96266f 100644
 --- a/src/3rdparty/chromium/ui/gfx/BUILD.gn
 +++ b/src/3rdparty/chromium/ui/gfx/BUILD.gn
 @@ -56,10 +56,12 @@ if (is_win) {
@@ -488,7 +488,7 @@ index 9e55ad4..398f962 100644
      all_dependent_configs = [ ":gfx_win_linker_flags" ]
      public_deps += [ "//components/crash/core/common" ]
 diff --git a/src/3rdparty/chromium/ui/gfx/codec/BUILD.gn b/src/3rdparty/chromium/ui/gfx/codec/BUILD.gn
-index def3b78..6ad85d8 100644
+index def3b7850b..6ad85d8de1 100644
 --- a/src/3rdparty/chromium/ui/gfx/codec/BUILD.gn
 +++ b/src/3rdparty/chromium/ui/gfx/codec/BUILD.gn
 @@ -36,7 +36,7 @@ jumbo_component("codec") {
@@ -501,10 +501,10 @@ index def3b78..6ad85d8 100644
                              # which is uninteresting.
    }
 diff --git a/src/3rdparty/chromium/ui/gl/BUILD.gn b/src/3rdparty/chromium/ui/gl/BUILD.gn
-index 8c44b2d..ae2ac89 100644
+index 8c44b2d82a..f597fdc1b6 100644
 --- a/src/3rdparty/chromium/ui/gl/BUILD.gn
 +++ b/src/3rdparty/chromium/ui/gl/BUILD.gn
-@@ -276,15 +276,24 @@ jumbo_component("gl") {
+@@ -276,15 +276,25 @@ jumbo_component("gl") {
        "vsync_thread_win_dxgi.h",
      ]
  
@@ -522,6 +522,7 @@ index 8c44b2d..ae2ac89 100644
 +      libs = [
 +        "dxgi",
 +        "dxguid",
++        "dxcore",
 +        "dwmapi",
 +      ]
 +    } else {
@@ -539,7 +540,7 @@ index 8c44b2d..ae2ac89 100644
        "//ui/base",
        "//ui/display:display",
 diff --git a/src/3rdparty/chromium/ui/gl/dc_layer_tree.cc b/src/3rdparty/chromium/ui/gl/dc_layer_tree.cc
-index f44333e..2a077eb 100644
+index f44333e5ba..2a077eb452 100644
 --- a/src/3rdparty/chromium/ui/gl/dc_layer_tree.cc
 +++ b/src/3rdparty/chromium/ui/gl/dc_layer_tree.cc
 @@ -32,6 +32,7 @@ bool NeedSwapChainPresenter(const DCLayerOverlayParams* overlay) {
@@ -623,7 +624,7 @@ index f44333e..2a077eb 100644
  
  size_t DCLayerTree::GetNumSurfacesInPoolForTesting() const {
 diff --git a/src/3rdparty/chromium/ui/gl/delegated_ink_point_renderer_gpu.cc b/src/3rdparty/chromium/ui/gl/delegated_ink_point_renderer_gpu.cc
-index 7f71dc1..20d6d21 100644
+index 7f71dc1f04..20d6d2100f 100644
 --- a/src/3rdparty/chromium/ui/gl/delegated_ink_point_renderer_gpu.cc
 +++ b/src/3rdparty/chromium/ui/gl/delegated_ink_point_renderer_gpu.cc
 @@ -63,6 +63,7 @@ void DelegatedInkPointRendererGpu::InitMessagePipeline(
@@ -702,7 +703,7 @@ index 7f71dc1..20d6d21 100644
  
  void DelegatedInkPointRendererGpu::InitializeForTesting(
 diff --git a/src/3rdparty/chromium/ui/gl/delegated_ink_point_renderer_gpu.h b/src/3rdparty/chromium/ui/gl/delegated_ink_point_renderer_gpu.h
-index 7864d26..f1763ed 100644
+index 7864d26c80..f1763ed2b6 100644
 --- a/src/3rdparty/chromium/ui/gl/delegated_ink_point_renderer_gpu.h
 +++ b/src/3rdparty/chromium/ui/gl/delegated_ink_point_renderer_gpu.h
 @@ -128,15 +128,19 @@ class GL_EXPORT DelegatedInkPointRendererGpu
@@ -726,7 +727,7 @@ index 7864d26..f1763ed 100644
    // The most recent metadata received. The metadata marks the last point of
    // the app rendered stroke, which corresponds to the first point of the
 diff --git a/src/3rdparty/chromium/ui/gl/direct_composition_support.cc b/src/3rdparty/chromium/ui/gl/direct_composition_support.cc
-index e8e41ff..bf76367 100644
+index e8e41ff8f7..bf76367d05 100644
 --- a/src/3rdparty/chromium/ui/gl/direct_composition_support.cc
 +++ b/src/3rdparty/chromium/ui/gl/direct_composition_support.cc
 @@ -624,6 +624,7 @@ using PFN_DCOMPOSITION_WAIT = HRESULT(WINAPI*)(UINT count,
@@ -791,7 +792,7 @@ index e8e41ff..bf76367 100644
      return false;
    }();
 diff --git a/src/3rdparty/chromium/ui/gl/direct_composition_support.h b/src/3rdparty/chromium/ui/gl/direct_composition_support.h
-index 4b376cd..d88798c 100644
+index 4b376cda5d..d88798c1e5 100644
 --- a/src/3rdparty/chromium/ui/gl/direct_composition_support.h
 +++ b/src/3rdparty/chromium/ui/gl/direct_composition_support.h
 @@ -25,6 +25,7 @@ HRESULT DCompositionWaitForCompositorClock(UINT count,
@@ -811,7 +812,7 @@ index 4b376cd..d88798c 100644
  // Initialize direct composition with the given d3d11 device.
  GL_EXPORT void InitializeDirectComposition(
 diff --git a/src/3rdparty/chromium/ui/gl/init/BUILD.gn b/src/3rdparty/chromium/ui/gl/init/BUILD.gn
-index f8fd6c7..ed77b43 100644
+index f8fd6c7171..ed77b431d8 100644
 --- a/src/3rdparty/chromium/ui/gl/init/BUILD.gn
 +++ b/src/3rdparty/chromium/ui/gl/init/BUILD.gn
 @@ -52,8 +52,12 @@ jumbo_component("init") {
@@ -830,7 +831,7 @@ index f8fd6c7..ed77b43 100644
      sources += [
        "gl_factory_mac.cc",
 diff --git a/src/3rdparty/chromium/ui/gl/swap_chain_presenter.cc b/src/3rdparty/chromium/ui/gl/swap_chain_presenter.cc
-index d15792c..99658d2 100644
+index d15792c8e0..99658d24db 100644
 --- a/src/3rdparty/chromium/ui/gl/swap_chain_presenter.cc
 +++ b/src/3rdparty/chromium/ui/gl/swap_chain_presenter.cc
 @@ -413,6 +413,7 @@ bool TryDisableDesktopPlane(IDXGIDecodeSwapChain* decode_swap_chain,
@@ -850,7 +851,7 @@ index d15792c..99658d2 100644
    return true;
  }
 diff --git a/src/3rdparty/chromium/ui/gl/vsync_provider_win_dcomp.cc b/src/3rdparty/chromium/ui/gl/vsync_provider_win_dcomp.cc
-index 50cf777..08fdf49 100644
+index 50cf7770d7..08fdf49db0 100644
 --- a/src/3rdparty/chromium/ui/gl/vsync_provider_win_dcomp.cc
 +++ b/src/3rdparty/chromium/ui/gl/vsync_provider_win_dcomp.cc
 @@ -27,6 +27,7 @@ void VSyncProviderWinDComp::GetVSyncParameters(UpdateVSyncCallback callback) {
@@ -872,7 +873,7 @@ index 50cf777..08fdf49 100644
  
  bool VSyncProviderWinDComp::SupportGetVSyncParametersIfAvailable() const {
 diff --git a/src/3rdparty/chromium/ui/native_theme/BUILD.gn b/src/3rdparty/chromium/ui/native_theme/BUILD.gn
-index f7ac0fc..1bf278b 100644
+index f7ac0fc3e8..1bf278b664 100644
 --- a/src/3rdparty/chromium/ui/native_theme/BUILD.gn
 +++ b/src/3rdparty/chromium/ui/native_theme/BUILD.gn
 @@ -128,7 +128,11 @@ if (is_win) {
@@ -889,7 +890,7 @@ index f7ac0fc..1bf278b 100644
  } else {
    source_set("native_theme_browser") {
 diff --git a/src/3rdparty/chromium/ui/shell_dialogs/BUILD.gn b/src/3rdparty/chromium/ui/shell_dialogs/BUILD.gn
-index 2c003ec..9e59882 100644
+index 2c003ec060..9e59882b9b 100644
 --- a/src/3rdparty/chromium/ui/shell_dialogs/BUILD.gn
 +++ b/src/3rdparty/chromium/ui/shell_dialogs/BUILD.gn
 @@ -41,7 +41,7 @@ jumbo_component("shell_dialogs") {

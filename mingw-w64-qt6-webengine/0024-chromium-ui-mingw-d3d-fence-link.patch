@@ -1,0 +1,39 @@
+Compile gfx::D3DSharedFence under MinGW so the D3D shared-image pipeline
+enabled by 0021 actually has its symbols at link time.
+
+0014-chromium-ui.patch removed d3d_shared_fence.cc/h from the MinGW build
+by adding them to a `sources -= [ ... ]` block under `if (is_mingw)` in
+ui/gfx/BUILD.gn. With 0021 re-enabling the GPU side that calls into
+gfx::D3DSharedFence, the resulting QtWebEngineCore link fails with:
+
+    undefined reference to `gfx::D3DSharedFence::~D3DSharedFence()'
+    undefined reference to `gfx::D3DSharedFence::CreateForD3D11(...)'
+    undefined reference to `gfx::D3DSharedFence::CreateFromD3D11Fence(...)'
+    undefined reference to `gfx::D3DSharedFence::CreateFromScopedHandle(...)'
+    undefined reference to `gfx::D3DSharedFence::WaitD3D11(...)'
+    undefined reference to `gfx::D3DSharedFence::IncrementAndSignalD3D11()'
+    undefined reference to `gfx::D3DSharedFence::Update(unsigned long long)'
+    undefined reference to `gfx::D3DSharedFence::GetDXGIHandleToken() const'
+    undefined reference to `gfx::D3DSharedFence::GetFenceValue() const'
+    undefined reference to `gfx::D3DSharedFence::GetSharedHandle() const'
+    undefined reference to `gfx::D3DSharedFence::CloneSharedHandle() const'
+
+Drop the d3d_shared_fence.{cc,h} entries from the MinGW exclusion list.
+text_analysis_source stays excluded - it's an unrelated DirectWrite codepath
+that has its own MinGW issues and isn't pulled in by the D3D pipeline.
+
+mingw-w64 ucrt64's d3d11_4.h provides ID3D11Fence / ID3D11Device5 (the only
+non-trivial dependencies of d3d_shared_fence.cc).
+
+diff --git a/src/3rdparty/chromium/ui/gfx/BUILD.gn b/src/3rdparty/chromium/ui/gfx/BUILD.gn
+--- a/src/3rdparty/chromium/ui/gfx/BUILD.gn
++++ b/src/3rdparty/chromium/ui/gfx/BUILD.gn
+@@ -249,8 +249,6 @@ component("gfx") {
+     ]
+     if (is_mingw) {
+       sources -= [
+-        "win/d3d_shared_fence.cc",
+-        "win/d3d_shared_fence.h",
+         "win/text_analysis_source.cc",
+         "win/text_analysis_source.h"
+       ]

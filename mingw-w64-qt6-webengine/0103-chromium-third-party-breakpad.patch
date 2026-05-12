@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/third_party/breakpad/BUILD.gn b/src/3rdparty/chromium/third_party/breakpad/BUILD.gn
-index a721ae2..50a2faa 100644
+index a721ae252d..50a2faa8dd 100644
 --- a/src/3rdparty/chromium/third_party/breakpad/BUILD.gn
 +++ b/src/3rdparty/chromium/third_party/breakpad/BUILD.gn
 @@ -1083,6 +1083,9 @@ if (is_win) {

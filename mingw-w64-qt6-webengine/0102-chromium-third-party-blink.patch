@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/BUILD.gn b/src/3rdparty/chromium/third_party/blink/renderer/BUILD.gn
-index c3b22d1..806836a 100644
+index c3b22d19ac..806836aa37 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/BUILD.gn
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/BUILD.gn
 @@ -37,7 +37,7 @@ config("inside_blink") {
@@ -39,7 +39,7 @@ index c3b22d1..806836a 100644
        "/wd4305",  # Truncation from 'type1' to 'type2'.
        "/wd4324",  # Struct padded due to declspec(align).
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/bindings/core/v8/v8_initializer.cc b/src/3rdparty/chromium/third_party/blink/renderer/bindings/core/v8/v8_initializer.cc
-index 8754ee3..aa1f79e 100644
+index 8754ee3db8..aa1f79e767 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/bindings/core/v8/v8_initializer.cc
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/bindings/core/v8/v8_initializer.cc
 @@ -109,7 +109,7 @@
@@ -63,8 +63,26 @@ index 8754ee3..aa1f79e 100644
  
    V8ContextSnapshot::EnsureInterfaceTemplates(isolate);
  
+diff --git a/src/3rdparty/chromium/third_party/blink/renderer/bindings/core/v8/serialization/v8_script_value_serializer.cc b/src/3rdparty/chromium/third_party/blink/renderer/bindings/core/v8/serialization/v8_script_value_serializer.cc
+index 482663b11d..92e8a91718 100644
+--- a/src/3rdparty/chromium/third_party/blink/renderer/bindings/core/v8/serialization/v8_script_value_serializer.cc
++++ b/src/3rdparty/chromium/third_party/blink/renderer/bindings/core/v8/serialization/v8_script_value_serializer.cc
+@@ -920,10 +920,10 @@ v8::Maybe<bool> V8ScriptValueSerializer::WriteHostObject(
+     return v8::Just(true);
+   }
+   if (!exception_state.HadException()) {
+-    StringView interface = wrappable->GetWrapperTypeInfo()->interface_name;
++    StringView myinterface = wrappable->GetWrapperTypeInfo()->interface_name;
+     exception_state.ThrowDOMException(
+         DOMExceptionCode::kDataCloneError,
+-        interface + " object could not be cloned.");
++        myinterface + " object could not be cloned.");
+   }
+   return v8::Nothing<bool>();
+ }
+
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/core/BUILD.gn b/src/3rdparty/chromium/third_party/blink/renderer/core/BUILD.gn
-index 6acda03..94874e9 100644
+index 6acda0315f..94874e9e06 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/core/BUILD.gn
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/core/BUILD.gn
 @@ -147,7 +147,7 @@ config("blink_core_pch") {
@@ -95,7 +113,7 @@ index 6acda03..94874e9 100644
        # In generated bindings code: "switch contains default but no case".
        # 4701 and 4702 are disabled because of issues in Bison-generated
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/core/css/css_numeric_literal_value.cc b/src/3rdparty/chromium/third_party/blink/renderer/core/css/css_numeric_literal_value.cc
-index 831ee12..dbc8cb9 100644
+index 831ee12356..dbc8cb9c3d 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/core/css/css_numeric_literal_value.cc
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/core/css/css_numeric_literal_value.cc
 @@ -194,11 +194,11 @@ bool CSSNumericLiteralValue::IsComputationallyIndependent() const {
@@ -113,7 +131,7 @@ index 831ee12..dbc8cb9 100644
  #endif
    return result;
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/core/inspector/BUILD.gn b/src/3rdparty/chromium/third_party/blink/renderer/core/inspector/BUILD.gn
-index 1590812..9c05d0d 100644
+index 15908128e8..9c05d0db21 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/core/inspector/BUILD.gn
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/core/inspector/BUILD.gn
 @@ -106,7 +106,7 @@ jumbo_source_set("generated") {
@@ -124,9 +142,9 @@ index 1590812..9c05d0d 100644
 +  if (is_msvc) {
      cflags = [ "/wd4702" ]  # Unreachable code.
    }
- 
+
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/core/layout/layout_object.cc b/src/3rdparty/chromium/third_party/blink/renderer/core/layout/layout_object.cc
-index 2e40cde..7377154 100644
+index 2e40cde3b4..737715482c 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/core/layout/layout_object.cc
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/core/layout/layout_object.cc
 @@ -315,7 +315,9 @@ struct SameSizeAsLayoutObject : public GarbageCollected<SameSizeAsLayoutObject>,
@@ -140,7 +158,7 @@ index 2e40cde..7377154 100644
  bool LayoutObject::affects_parent_block_ = false;
  
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/core/precompile_core.h b/src/3rdparty/chromium/third_party/blink/renderer/core/precompile_core.h
-index e88f40c..f307da4 100644
+index e88f40c0c0..f307da4a7e 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/core/precompile_core.h
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/core/precompile_core.h
 @@ -9,7 +9,7 @@
@@ -153,7 +171,7 @@ index e88f40c..f307da4 100644
  #elif defined(__APPLE__)
  #include "third_party/blink/renderer/build/mac/prefix.h"
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/modules/BUILD.gn b/src/3rdparty/chromium/third_party/blink/renderer/modules/BUILD.gn
-index 3c80db0..41a935a 100644
+index 3c80db0eac..41a935a884 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/modules/BUILD.gn
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/modules/BUILD.gn
 @@ -216,7 +216,7 @@ jumbo_component("modules") {
@@ -166,7 +184,7 @@ index 3c80db0..41a935a 100644
          [ "/wd4334" ]  # Result of 32-bit shift implicitly converted to 64 bits.
    }
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/modules/webaudio/BUILD.gn b/src/3rdparty/chromium/third_party/blink/renderer/modules/webaudio/BUILD.gn
-index 4a39384..a23a143 100644
+index 4a39384a9c..a23a143d53 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/modules/webaudio/BUILD.gn
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/modules/webaudio/BUILD.gn
 @@ -194,7 +194,7 @@ blink_modules_sources("webaudio") {
@@ -178,8 +196,64 @@ index 4a39384..a23a143 100644
      # Result of 32-bit shift implicitly converted to 64 bits.
      cflags = [ "/wd4334" ]
    }
+diff --git a/src/3rdparty/chromium/third_party/blink/renderer/modules/webusb/usb_alternate_interface.cc b/src/3rdparty/chromium/third_party/blink/renderer/modules/webusb/usb_alternate_interface.cc
+index 59c8e53029..58d231cb92 100644
+--- a/src/3rdparty/chromium/third_party/blink/renderer/modules/webusb/usb_alternate_interface.cc
++++ b/src/3rdparty/chromium/third_party/blink/renderer/modules/webusb/usb_alternate_interface.cc
+@@ -12,28 +12,28 @@
+ namespace blink {
+ 
+ USBAlternateInterface* USBAlternateInterface::Create(
+-    const USBInterface* interface,
++    const USBInterface* myinterface,
+     wtf_size_t alternate_index) {
+-  return MakeGarbageCollected<USBAlternateInterface>(interface,
++  return MakeGarbageCollected<USBAlternateInterface>(myinterface,
+                                                      alternate_index);
+ }
+ 
+ USBAlternateInterface* USBAlternateInterface::Create(
+-    const USBInterface* interface,
++    const USBInterface* myinterface,
+     uint8_t alternate_setting,
+     ExceptionState& exception_state) {
+-  const auto& alternates = interface->Info().alternates;
++  const auto& alternates = myinterface->Info().alternates;
+   for (wtf_size_t i = 0; i < alternates.size(); ++i) {
+     if (alternates[i]->alternate_setting == alternate_setting)
+-      return USBAlternateInterface::Create(interface, i);
++      return USBAlternateInterface::Create(myinterface, i);
+   }
+   exception_state.ThrowRangeError("Invalid alternate setting.");
+   return nullptr;
+ }
+ 
+-USBAlternateInterface::USBAlternateInterface(const USBInterface* interface,
++USBAlternateInterface::USBAlternateInterface(const USBInterface* myinterface,
+                                              wtf_size_t alternate_index)
+-    : interface_(interface), alternate_index_(alternate_index) {
++    : interface_(myinterface), alternate_index_(alternate_index) {
+   DCHECK(interface_);
+   DCHECK_LT(alternate_index_, interface_->Info().alternates.size());
+
+diff --git a/src/3rdparty/chromium/third_party/blink/renderer/modules/webusb/usb_device.cc b/src/3rdparty/chromium/third_party/blink/renderer/modules/webusb/usb_device.cc
+index 8abe0ddcca..831a2b319c 100644
+--- a/src/3rdparty/chromium/third_party/blink/renderer/modules/webusb/usb_device.cc
++++ b/src/3rdparty/chromium/third_party/blink/renderer/modules/webusb/usb_device.cc
+@@ -885,9 +885,9 @@ UsbControlTransferParamsPtr USBDevice::ConvertControlTransferParameters(
+ 
+ void USBDevice::SetEndpointsForInterface(wtf_size_t interface_index, bool set) {
+   const auto& configuration = *Info().configurations[configuration_index_];
+-  const auto& interface = *configuration.interfaces[interface_index];
++  const auto& myinterface = *configuration.interfaces[interface_index];
+   const auto& alternate =
+-      *interface.alternates[selected_alternate_indices_[interface_index]];
++      *myinterface.alternates[selected_alternate_indices_[interface_index]];
+   for (const auto& endpoint : alternate.endpoints) {
+     uint8_t endpoint_number = endpoint->endpoint_number;
+     if (endpoint_number == 0 || endpoint_number >= kEndpointsBitsNumber)
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/platform/BUILD.gn b/src/3rdparty/chromium/third_party/blink/renderer/platform/BUILD.gn
-index 64383a0..90b095a 100644
+index 64383a0f2b..90b095a3ff 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/platform/BUILD.gn
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/platform/BUILD.gn
 @@ -273,7 +273,7 @@ config("blink_platform_pch") {
@@ -243,8 +317,38 @@ index 64383a0..90b095a 100644
        cflags = [ "/arch:AVX" ]
      } else {
        cflags = [ "-mavx" ]
+diff --git a/src/3rdparty/chromium/third_party/blink/renderer/platform/graphics/canvas_resource.cc b/src/3rdparty/chromium/third_party/blink/renderer/platform/graphics/canvas_resource.cc
+index 724c136a06..095d58c8cc 100644
+--- a/src/3rdparty/chromium/third_party/blink/renderer/platform/graphics/canvas_resource.cc
++++ b/src/3rdparty/chromium/third_party/blink/renderer/platform/graphics/canvas_resource.cc
+@@ -843,18 +843,18 @@ ExternalCanvasResource::GetSyncTokenWithOptionalVerification(
+   // This method is expected to be used both in WebGL and WebGPU, that's why it
+   // uses InterfaceBase.
+   if (!sync_token_.HasData()) {
+-    auto* interface = InterfaceBase();
+-    if (interface)
+-      interface->GenSyncTokenCHROMIUM(sync_token_.GetData());
++    auto* myinterface = InterfaceBase();
++    if (myinterface)
++      myinterface->GenSyncTokenCHROMIUM(sync_token_.GetData());
+   } else if (!sync_token_.verified_flush()) {
+     // The offscreencanvas usage needs the sync_token to be verified in order to
+     // be able to use it by the compositor. This is why this method produces a
+     // verified token even if `needs_verified_token` is false.
+     int8_t* token_data = sync_token_.GetData();
+-    auto* interface = InterfaceBase();
+-    DCHECK(interface);
+-    interface->ShallowFlushCHROMIUM();
+-    interface->VerifySyncTokensCHROMIUM(&token_data, 1);
++    auto* myinterface = InterfaceBase();
++    DCHECK(myinterface);
++    myinterface->ShallowFlushCHROMIUM();
++    myinterface->VerifySyncTokensCHROMIUM(&token_data, 1);
+     sync_token_.SetVerifyFlush();
+   }
+ 
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/platform/fonts/font_platform_data.cc b/src/3rdparty/chromium/third_party/blink/renderer/platform/fonts/font_platform_data.cc
-index b6d9af8..e40b42a 100644
+index b6d9af86e4..e40b42a742 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/platform/fonts/font_platform_data.cc
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/platform/fonts/font_platform_data.cc
 @@ -57,6 +57,7 @@
@@ -264,7 +368,7 @@ index b6d9af8..e40b42a 100644
  } // namespace
  
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/platform/precompile_platform.h b/src/3rdparty/chromium/third_party/blink/renderer/platform/precompile_platform.h
-index 83a9e90..2fdc22d 100644
+index 83a9e903de..2fdc22deb1 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/platform/precompile_platform.h
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/platform/precompile_platform.h
 @@ -10,7 +10,7 @@
@@ -277,7 +381,7 @@ index 83a9e90..2fdc22d 100644
  #elif defined(__APPLE__)
  #include "third_party/blink/renderer/build/mac/prefix.h"
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/BUILD.gn b/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/BUILD.gn
-index 291bb34..910a36b 100644
+index 291bb340bd..910a36b1c2 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/BUILD.gn
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/BUILD.gn
 @@ -21,7 +21,7 @@ visibility = [
@@ -317,7 +421,7 @@ index 291bb34..910a36b 100644
    }
  
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.cc b/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.cc
-index 0ae79af..b5627ae 100644
+index 0ae79af40c..b5627ae4c2 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.cc
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.cc
 @@ -93,7 +93,7 @@ size_t GetUnderestimatedStackSize() {
@@ -348,7 +452,7 @@ index 0ae79af..b5627ae 100644
    // Notice that we cannot use the TIB's StackLimit for the stack end, as i
    // tracks the end of the committed range. We're after the end of the reserved
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.h b/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.h
-index 17dde31..2507bc7 100644
+index 17dde31772..2507bc7a5a 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.h
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.h
 @@ -29,7 +29,7 @@ WTF_EXPORT extern uintptr_t g_main_thread_underestimated_stack_size;
@@ -361,7 +465,7 @@ index 17dde31..2507bc7 100644
  #endif
  
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/threading.cc b/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/threading.cc
-index 3a4c9d4..e333875 100644
+index 3a4c9d4209..e3338752bb 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/threading.cc
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/threading.cc
 @@ -50,7 +50,7 @@ void Threading::Initialize() {
@@ -374,7 +478,7 @@ index 3a4c9d4..e333875 100644
    // Needed to bootstrap Threading on Windows, because this value is needed
    // before the main thread data is fully initialized.
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/threading.h b/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/threading.h
-index 302a200..a348959 100644
+index 302a200833..a348959a42 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/threading.h
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/threading.h
 @@ -77,7 +77,7 @@ class WTF_EXPORT Threading {
@@ -396,7 +500,7 @@ index 302a200..a348959 100644
  #endif
  
 diff --git a/src/3rdparty/chromium/third_party/blink/tools/BUILD.gn b/src/3rdparty/chromium/third_party/blink/tools/BUILD.gn
-index b7d7a70..fc0b5c1 100644
+index b7d7a70ead..fc0b5c1099 100644
 --- a/src/3rdparty/chromium/third_party/blink/tools/BUILD.gn
 +++ b/src/3rdparty/chromium/third_party/blink/tools/BUILD.gn
 @@ -41,7 +41,7 @@ group("wpt_tests_isolate") {

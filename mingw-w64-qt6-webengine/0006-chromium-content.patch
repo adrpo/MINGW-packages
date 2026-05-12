@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/content/app/content_main.cc b/src/3rdparty/chromium/content/app/content_main.cc
-index c18a42c..685fc92 100644
+index c18a42cfbc..685fc92769 100644
 --- a/src/3rdparty/chromium/content/app/content_main.cc
 +++ b/src/3rdparty/chromium/content/app/content_main.cc
 @@ -59,7 +59,9 @@
@@ -23,26 +23,33 @@ index c18a42c..685fc92 100644
  
  #if !BUILDFLAG(IS_ANDROID)
 diff --git a/src/3rdparty/chromium/content/browser/BUILD.gn b/src/3rdparty/chromium/content/browser/BUILD.gn
-index 549fb4b..124da79 100644
+index 549fb4bed1..7548dc1e2f 100644
 --- a/src/3rdparty/chromium/content/browser/BUILD.gn
 +++ b/src/3rdparty/chromium/content/browser/BUILD.gn
-@@ -3027,6 +3027,15 @@ jumbo_source_set("browser") {
+@@ -3027,6 +3027,22 @@ jumbo_source_set("browser") {
        "speech/tts_win_utils.h",
        "utility_sandbox_delegate_win.cc",
      ]
++    
 +    if (is_mingw) {
 +      sources -= [
 +        "renderer_host/direct_manipulation_event_handler_win.cc",
 +        "renderer_host/direct_manipulation_event_handler_win.h",
 +        "renderer_host/direct_manipulation_helper_win.cc",
 +        "renderer_host/direct_manipulation_helper_win.h",
++        # MinGW <msctf.h> does not declare ITfHandwriting{,Sink}, and
++        # ui::TSFBridge is excluded for MinGW (see ui/base/ime/win/BUILD.gn).
++        "renderer_host/input/stylus_handwriting_callback_sink_win.cc",
++        "renderer_host/input/stylus_handwriting_callback_sink_win.h",
++        "renderer_host/input/stylus_handwriting_controller_win.cc",
++        "renderer_host/input/stylus_handwriting_controller_win.h",
 +        "speech/tts_win.cc",
 +      ]
 +    }
      deps += [
        "//components/app_launch_prefetch",
        "//content/utility:delegate_data",
-@@ -3035,17 +3044,31 @@ jumbo_source_set("browser") {
+@@ -3035,17 +3051,32 @@ jumbo_source_set("browser") {
        "//third_party/isimpledom",
        "//third_party/wtl",
      ]
@@ -75,6 +82,7 @@ index 549fb4b..124da79 100644
 +        "dinput8",
 +        "dwmapi",
 +        "dxguid",
++        "dxcore",
 +        "imm32",
 +        "oleacc",
 +        "portabledeviceguids",
@@ -86,7 +94,7 @@ index 549fb4b..124da79 100644
      if (is_qtwebengine) {
         sources -= [ "accessibility/browser_accessibility_state_impl_win.cc" ]
 diff --git a/src/3rdparty/chromium/content/browser/browser_main_loop.cc b/src/3rdparty/chromium/content/browser/browser_main_loop.cc
-index 91a48be..583a864 100644
+index 91a48be245..583a864d97 100644
 --- a/src/3rdparty/chromium/content/browser/browser_main_loop.cc
 +++ b/src/3rdparty/chromium/content/browser/browser_main_loop.cc
 @@ -1213,7 +1213,7 @@ void BrowserMainLoop::ShutdownThreadsAndCleanUp() {
@@ -108,7 +116,7 @@ index 91a48be..583a864 100644
            video_capture::features::kWinCameraMonitoringInVideoCaptureService)) {
      system_message_window_ = std::make_unique<media::SystemMessageWindowWin>();
 diff --git a/src/3rdparty/chromium/content/browser/devtools/devtools_pipe_handler.cc b/src/3rdparty/chromium/content/browser/devtools/devtools_pipe_handler.cc
-index 5b1a74b..fc47fb7 100644
+index 5b1a74b91a..fc47fb789c 100644
 --- a/src/3rdparty/chromium/content/browser/devtools/devtools_pipe_handler.cc
 +++ b/src/3rdparty/chromium/content/browser/devtools/devtools_pipe_handler.cc
 @@ -97,7 +97,7 @@ class PipeIOBase {
@@ -170,7 +178,7 @@ index 5b1a74b..fc47fb7 100644
      write_handle_ = INVALID_HANDLE_VALUE;
  #else
 diff --git a/src/3rdparty/chromium/content/browser/media/capture/desktop_capture_device.cc b/src/3rdparty/chromium/content/browser/media/capture/desktop_capture_device.cc
-index 60eabf1..44191cb 100644
+index 60eabf1a69..44191cb6e9 100644
 --- a/src/3rdparty/chromium/content/browser/media/capture/desktop_capture_device.cc
 +++ b/src/3rdparty/chromium/content/browser/media/capture/desktop_capture_device.cc
 @@ -754,7 +754,7 @@ std::unique_ptr<media::VideoCaptureDevice> DesktopCaptureDevice::Create(
@@ -182,8 +190,234 @@ index 60eabf1..44191cb 100644
    options.set_allow_cropping_window_capturer(true);
  
    // We prefer to allow the WGC and DXGI capturers to embed the cursor when
+diff --git a/src/3rdparty/chromium/content/browser/installedapp/native_win_app_fetcher_impl.h b/src/3rdparty/chromium/content/browser/installedapp/native_win_app_fetcher_impl.h
+index 7a05b55ff4..950f9c09a7 100644
+--- a/src/3rdparty/chromium/content/browser/installedapp/native_win_app_fetcher_impl.h
++++ b/src/3rdparty/chromium/content/browser/installedapp/native_win_app_fetcher_impl.h
+@@ -5,11 +5,11 @@
+ #ifndef CONTENT_BROWSER_INSTALLEDAPP_NATIVE_WIN_APP_FETCHER_IMPL_H_
+ #define CONTENT_BROWSER_INSTALLEDAPP_NATIVE_WIN_APP_FETCHER_IMPL_H_
+ 
+-#include <Windows.ApplicationModel.h>
+-#include <Windows.System.h>
+-#include <combaseapi.h>
+-#include <windows.foundation.collections.h>
+-#include <wrl/async.h>
++#include <unknwn.h>
++#include <winrt/windows.applicationmodel.h>
++#include <winrt/windows.foundation.collections.h>
++#include <winrt/windows.foundation.h>
++#include <winrt/windows.system.h>
+ 
+ #include "base/functional/callback.h"
+ #include "base/memory/weak_ptr.h"
+@@ -34,17 +34,17 @@ class CONTENT_EXPORT NativeWinAppFetcherImpl : public NativeWinAppFetcher {
+ 
+  private:
+   void OnGetAppUriHandlers(
+-      Microsoft::WRL::ComPtr<ABI::Windows::Foundation::Collections::IVectorView<
+-          ABI::Windows::ApplicationModel::AppInfo*>> found_app_list);
++      winrt::Windows::Foundation::Collections::IVectorView<
++          winrt::Windows::ApplicationModel::AppInfo> found_app_list);
+ 
+   void OnFailure();
+ 
+   base::OnceCallback<void(std::vector<blink::mojom::RelatedApplicationPtr>)>
+       callback_;
+-  Microsoft::WRL::ComPtr<ABI::Windows::Foundation::IAsyncOperation<
+-      ABI::Windows::Foundation::Collections::IVectorView<
+-          ABI::Windows::ApplicationModel::AppInfo*>*>>
+-      enum_operation_;
++  winrt::Windows::Foundation::IAsyncOperation<
++      winrt::Windows::Foundation::Collections::IVectorView<
++          winrt::Windows::ApplicationModel::AppInfo>>
++      enum_operation_{nullptr};
+ 
+   SEQUENCE_CHECKER(sequence_checker_);
+   base::WeakPtrFactory<NativeWinAppFetcherImpl> weak_ptr_factory_{this};
+diff --git a/src/3rdparty/chromium/content/browser/installedapp/native_win_app_fetcher_impl.cc b/src/3rdparty/chromium/content/browser/installedapp/native_win_app_fetcher_impl.cc
+index 28c7aa1246..689b7b1a78 100644
+--- a/src/3rdparty/chromium/content/browser/installedapp/native_win_app_fetcher_impl.cc
++++ b/src/3rdparty/chromium/content/browser/installedapp/native_win_app_fetcher_impl.cc
+@@ -4,18 +4,11 @@
+ 
+ #include "content/browser/installedapp/native_win_app_fetcher_impl.h"
+ 
+-#include <windows.foundation.h>
+-
+ #include <string>
+ #include <vector>
+ 
+ #include "base/strings/string_util.h"
+-#include "base/strings/utf_string_conversions.h"
+-#include "base/types/expected.h"
+-#include "base/win/async_operation.h"
+-#include "base/win/core_winrt_util.h"
+-#include "base/win/post_async_results.h"
+-#include "base/win/vector.h"
++#include "base/task/sequenced_task_runner.h"
+ #include "third_party/blink/public/mojom/installedapp/related_application.mojom.h"
+ 
+ namespace content {
+@@ -23,16 +16,12 @@ namespace content {
+ namespace {
+ constexpr char kWindowsPlatformName[] = "windows";
+ 
+-using ABI::Windows::ApplicationModel::AppInfo;
+-using ABI::Windows::ApplicationModel::IAppInfo;
+-using ABI::Windows::Foundation::IAsyncOperation;
+-using ABI::Windows::Foundation::IAsyncOperationCompletedHandler;
+-using ABI::Windows::Foundation::IUriRuntimeClass;
+-using ABI::Windows::Foundation::IUriRuntimeClassFactory;
+-using ABI::Windows::Foundation::Collections::IVectorView;
+-using ABI::Windows::System::ILauncherStatics4;
+-using Microsoft::WRL::Callback;
+-using Microsoft::WRL::ComPtr;
++using winrt::Windows::ApplicationModel::AppInfo;
++using winrt::Windows::Foundation::AsyncStatus;
++using winrt::Windows::Foundation::Collections::IVectorView;
++using winrt::Windows::Foundation::IAsyncOperation;
++using winrt::Windows::Foundation::Uri;
++using winrt::Windows::System::Launcher;
+ }  // namespace
+ 
+ NativeWinAppFetcherImpl::NativeWinAppFetcherImpl() = default;
+@@ -45,83 +34,80 @@ void NativeWinAppFetcherImpl::FetchAppsForUrl(
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+   callback_ = std::move(callback);
+ 
+-  ComPtr<IUriRuntimeClassFactory> url_factory;
+-  HRESULT hr =
+-      base::win::GetActivationFactory<IUriRuntimeClassFactory,
+-                                      RuntimeClass_Windows_Foundation_Uri>(
+-          &url_factory);
+-  if (FAILED(hr)) {
+-    return OnFailure();
+-  }
+-
+-  ComPtr<IUriRuntimeClass> url_win;
+-  hr = url_factory->CreateUri(
+-      base::win::ScopedHString::Create(url.spec()).get(), &url_win);
+-  if (FAILED(hr)) {
+-    return OnFailure();
+-  }
+-
+-  ComPtr<ILauncherStatics4> launcher;
+-  hr = base::win::GetActivationFactory<ILauncherStatics4,
+-                                       RuntimeClass_Windows_System_Launcher>(
+-      &launcher);
+-  if (FAILED(hr)) {
+-    return OnFailure();
+-  }
++  try {
++    Uri url_win(winrt::to_hstring(url.spec()));
+ 
+-  // FindAppUriHandlersAsync API returns list of apps that is validated
+-  // by the sites.
+-  // https://docs.microsoft.com/en-us/windows/uwp/
+-  // launch-resume/web-to-app-linking
+-  hr = launcher->FindAppUriHandlersAsync(url_win.Get(), &enum_operation_);
+-  if (FAILED(hr)) {
++    // FindAppUriHandlersAsync API returns list of apps that is validated
++    // by the sites.
++    // https://docs.microsoft.com/en-us/windows/uwp/
++    // launch-resume/web-to-app-linking
++    enum_operation_ = Launcher::FindAppUriHandlersAsync(url_win);
++  } catch (winrt::hresult_error const&) {
+     return OnFailure();
+   }
+ 
+-  base::win::PostAsyncHandlers(
+-      enum_operation_.Get(),
+-      base::BindOnce(&NativeWinAppFetcherImpl::OnGetAppUriHandlers,
+-                     weak_ptr_factory_.GetWeakPtr())),
+-      base::BindOnce(&NativeWinAppFetcherImpl::OnFailure,
+-                     weak_ptr_factory_.GetWeakPtr());
++  auto task_runner = base::SequencedTaskRunner::GetCurrentDefault();
++  auto weak_ptr = weak_ptr_factory_.GetWeakPtr();
++
++  enum_operation_.Completed(
++      [weak_ptr, task_runner](
++          IAsyncOperation<IVectorView<AppInfo>> const& op,
++          AsyncStatus status) {
++        if (status != AsyncStatus::Completed) {
++          task_runner->PostTask(
++              FROM_HERE,
++              base::BindOnce(&NativeWinAppFetcherImpl::OnFailure, weak_ptr));
++          return;
++        }
++        IVectorView<AppInfo> result{nullptr};
++        try {
++          result = op.GetResults();
++        } catch (winrt::hresult_error const&) {
++          task_runner->PostTask(
++              FROM_HERE,
++              base::BindOnce(&NativeWinAppFetcherImpl::OnFailure, weak_ptr));
++          return;
++        }
++        task_runner->PostTask(
++            FROM_HERE,
++            base::BindOnce(&NativeWinAppFetcherImpl::OnGetAppUriHandlers,
++                           weak_ptr, std::move(result)));
++      });
+ }
+ 
+ void NativeWinAppFetcherImpl::OnGetAppUriHandlers(
+-    Microsoft::WRL::ComPtr<ABI::Windows::Foundation::Collections::IVectorView<
+-        ABI::Windows::ApplicationModel::AppInfo*>> found_app_list) {
++    IVectorView<AppInfo> found_app_list) {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+ 
+-  std::vector<blink::mojom::RelatedApplicationPtr> found_related_apps;
+-
+   if (!found_app_list) {
+     return OnFailure();
+   }
+ 
+-  UINT found_app_url_size = 0;
+-  HRESULT hr = found_app_list->get_Size(&found_app_url_size);
+-  if (FAILED(hr) || found_app_url_size == 0) {
++  uint32_t found_app_url_size = found_app_list.Size();
++  if (found_app_url_size == 0) {
+     return OnFailure();
+   }
+ 
+-  for (size_t i = 0; i < found_app_url_size; ++i) {
+-    ComPtr<IAppInfo> app_info;
+-    hr = found_app_list->GetAt(i, &app_info);
+-    if (FAILED(hr)) {
++  std::vector<blink::mojom::RelatedApplicationPtr> found_related_apps;
++
++  for (uint32_t i = 0; i < found_app_url_size; ++i) {
++    AppInfo app_info{nullptr};
++    try {
++      app_info = found_app_list.GetAt(i);
++    } catch (winrt::hresult_error const&) {
+       continue;
+     }
+ 
+-    HSTRING app_user_model_id_native;
+-    hr = app_info->get_AppUserModelId(&app_user_model_id_native);
+-    if (FAILED(hr)) {
++    std::string id;
++    try {
++      id = winrt::to_string(app_info.AppUserModelId());
++    } catch (winrt::hresult_error const&) {
+       continue;
+     }
+ 
+-    std::wstring app_user_model_id(
+-        base::win::ScopedHString(app_user_model_id_native).Get());
+-
+     auto application = blink::mojom::RelatedApplication::New();
+     application->platform = kWindowsPlatformName;
+-    application->id = base::WideToASCII(app_user_model_id);
++    application->id = std::move(id);
+     found_related_apps.push_back(std::move(application));
+   }
+ 
 diff --git a/src/3rdparty/chromium/content/browser/media/key_system_support_win.cc b/src/3rdparty/chromium/content/browser/media/key_system_support_win.cc
-index 40dc117..74e0b6b 100644
+index 40dc117340..74e0b6ba6f 100644
 --- a/src/3rdparty/chromium/content/browser/media/key_system_support_win.cc
 +++ b/src/3rdparty/chromium/content/browser/media/key_system_support_win.cc
 @@ -66,6 +66,7 @@ void GetMediaFoundationServiceCdmCapability(
@@ -209,7 +443,7 @@ index 40dc117..74e0b6b 100644
  
  }  // namespace content
 diff --git a/src/3rdparty/chromium/content/browser/renderer_host/dwrite_font_proxy_impl_win.cc b/src/3rdparty/chromium/content/browser/renderer_host/dwrite_font_proxy_impl_win.cc
-index b76c20f..201427a 100644
+index b76c20f89a..201427a2ec 100644
 --- a/src/3rdparty/chromium/content/browser/renderer_host/dwrite_font_proxy_impl_win.cc
 +++ b/src/3rdparty/chromium/content/browser/renderer_host/dwrite_font_proxy_impl_win.cc
 @@ -37,7 +37,9 @@
@@ -266,8 +500,201 @@ index b76c20f..201427a 100644
    DCHECK(SUCCEEDED(hr));
  
    if (!collection_) {
+diff --git a/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_callback_sink_win.cc b/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_callback_sink_win.cc
+index 360116a17e..b7b33385df 100644
+--- a/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_callback_sink_win.cc
++++ b/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_callback_sink_win.cc
+@@ -22,14 +22,18 @@ StylusHandwritingCallbackSinkWin::~StylusHandwritingCallbackSinkWin() {
+ }
+ 
+ HRESULT STDMETHODCALLTYPE
+-StylusHandwritingCallbackSinkWin::RuntimeClassInitialize() {
++StylusHandwritingCallbackSinkWin::Initialize() {
+   const auto thread_manager =
+       StylusHandwritingControllerWin::GetThreadManager();
+-  return (thread_manager && SUCCEEDED(thread_manager.As(&source_)) &&
+-          SUCCEEDED(source_->AdviseSink(__uuidof(::ITfHandwritingSink), this,
+-                                        &sink_cookie_)))
+-             ? S_OK
+-             : E_FAIL;
++  if (!thread_manager) {
++    return E_FAIL;
++  }
++  if (FAILED(thread_manager->QueryInterface(__uuidof(ITfSource),
++                                            source_.put_void()))) {
++    return E_FAIL;
++  }
++  return source_->AdviseSink(__uuidof(::ITfHandwritingSink), this,
++                              &sink_cookie_);
+ }
+ 
+ HRESULT STDMETHODCALLTYPE
+@@ -57,7 +61,7 @@ StylusHandwritingCallbackSinkWin::FocusHandwritingTarget(
+ 
+   // Check that we have no pending callback.
+   DCHECK(!pending_target_args_);
+-  pending_target_args_ = args;
++  pending_target_args_.copy_from(args);
+ 
+   // The response is later be set via OnEditElementFocusedForStylusWriting
+   return TF_S_ASYNC;
+@@ -66,14 +70,14 @@ StylusHandwritingCallbackSinkWin::FocusHandwritingTarget(
+ void StylusHandwritingCallbackSinkWin::OnFocusHandled() {
+   if (pending_target_args_) {
+     pending_target_args_->SetResponse(::TF_HANDWRITING_TARGET_FOCUSED);
+-    pending_target_args_.Reset();
++    pending_target_args_ = nullptr;
+   }
+ }
+ 
+ void StylusHandwritingCallbackSinkWin::OnFocusFailed() {
+   if (pending_target_args_) {
+     pending_target_args_->SetResponse(::TF_NO_HANDWRITING_TARGET);
+-    pending_target_args_.Reset();
++    pending_target_args_ = nullptr;
+   }
+ }
+
+diff --git a/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_callback_sink_win.h b/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_callback_sink_win.h
+index 1fa071496b..62b297142a 100644
+--- a/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_callback_sink_win.h
++++ b/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_callback_sink_win.h
+@@ -5,22 +5,32 @@
+ #ifndef CONTENT_BROWSER_RENDERER_HOST_INPUT_STYLUS_HANDWRITING_CALLBACK_SINK_WIN_H_
+ #define CONTENT_BROWSER_RENDERER_HOST_INPUT_STYLUS_HANDWRITING_CALLBACK_SINK_WIN_H_
+ 
++#include <unknwn.h>
++#include <winrt/base.h>
+ #include "base/functional/callback.h"
+ #include "content/browser/renderer_host/input/stylus_handwriting_controller_win.h"
+ 
++#if defined(__MINGW32__)
++namespace winrt::impl {
++// MinGW's __mingw_uuidof() cannot be used in constexpr context; provide the
++// GUID explicitly so that winrt::implements<..., ::ITfHandwritingSink> works.
++// ITfHandwritingSink: {3575A140-A10F-555F-35F9-45C865EB93BE}
++template <>
++inline constexpr guid guid_v<::ITfHandwritingSink>{
++    0x3575A140, 0xA10F, 0x555F, {0x35, 0xF9, 0x45, 0xC8, 0x65, 0xEB, 0x93, 0xBE}};
++}  // namespace winrt::impl
++#endif
++
+ namespace content {
+ 
+ // Handles the callback from Shell Handwriting service.
+ class CONTENT_EXPORT StylusHandwritingCallbackSinkWin
+-    : public Microsoft::WRL::RuntimeClass<
+-          Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>,
+-          ::ITfHandwritingSink> {
++    : public winrt::implements<StylusHandwritingCallbackSinkWin,
++                               ::ITfHandwritingSink> {
+  public:
+   using OnFocusHandwritingTargetCallback =
+       StylusHandwritingControllerWin::OnFocusHandwritingTargetCallback;
+ 
+-  // The constructor is public for `MakeAndInitialize` and should not be called
+-  // directly.
+   StylusHandwritingCallbackSinkWin();
+   StylusHandwritingCallbackSinkWin(const StylusHandwritingCallbackSinkWin&) =
+       delete;
+@@ -28,8 +38,9 @@ class CONTENT_EXPORT StylusHandwritingCallbackSinkWin
+       const StylusHandwritingCallbackSinkWin&) = delete;
+   ~StylusHandwritingCallbackSinkWin() override;
+ 
+-  // Called during `MakeAndInitialize`.
+-  HRESULT STDMETHODCALLTYPE RuntimeClassInitialize();
++  // Must be called after construction via `winrt::make_self`. Returns S_OK on
++  // success.
++  HRESULT STDMETHODCALLTYPE Initialize();
+ 
+   // ITfHandwritingSink:
+   HRESULT STDMETHODCALLTYPE DetermineProximateHandwritingTarget(
+@@ -54,11 +65,11 @@ class CONTENT_EXPORT StylusHandwritingCallbackSinkWin
+   // ITfThreadMgr instance. Used to install and uninstall the ITfHandwritingSink
+   // so Shell Handwriting can call this controller instance, in particular
+   // FocusHandwritingTarget to set the target focus.
+-  Microsoft::WRL::ComPtr<ITfSource> source_;
++  winrt::com_ptr<ITfSource> source_;
+   // Args passed during FocusHandwritingTarget() call by Shell Handwriting
+   // which help to retrieve pointer input details and specify the response
+   // about focus handling back to Shell Handwriting.
+-  Microsoft::WRL::ComPtr<::ITfFocusHandwritingTargetArgs> pending_target_args_;
++  winrt::com_ptr<::ITfFocusHandwritingTargetArgs> pending_target_args_;
+   // Stores the address of a DWORD valued used to correctly uninstall the advise
+   // sink on the object destruction.
+   DWORD sink_cookie_ = TF_INVALID_COOKIE;
+diff --git a/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_controller_win.cc b/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_controller_win.cc
+index 1c8389b811..84fbf470a0 100644
+--- a/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_controller_win.cc
++++ b/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_controller_win.cc
+@@ -102,7 +102,7 @@ StylusHandwritingControllerWin::~StylusHandwritingControllerWin() {
+   g_instance = nullptr;
+ }
+ 
+-Microsoft::WRL::ComPtr<StylusHandwritingCallbackSinkWin>
++winrt::com_ptr<StylusHandwritingCallbackSinkWin>
+ StylusHandwritingControllerWin::GetCallbackSinkForTesting() const {
+   return handwriting_callback_sink_;
+ }
+@@ -143,14 +143,14 @@ void StylusHandwritingControllerWin::BindInterfaces() {
+   // There can only be one StylusHandwritingControllerWin at any given time.
+   CHECK(!g_instance);
+   if (const auto thread_manager = GetThreadManager()) {
++    auto sink = winrt::make_self<StylusHandwritingCallbackSinkWin>();
+     const bool initialized_successfully =
+         SUCCEEDED(thread_manager.As(&handwriting_)) &&
+         SUCCEEDED(handwriting_->SetHandwritingState(
+             ::TF_HANDWRITING_POINTERDELIVERY)) &&
+-        SUCCEEDED(
+-            Microsoft::WRL::Details::MakeAndInitialize<
+-                StylusHandwritingCallbackSinkWin>(&handwriting_callback_sink_));
++        SUCCEEDED(sink->Initialize());
+     if (initialized_successfully) {
++      handwriting_callback_sink_ = std::move(sink);
+       g_instance = this;
+     }
+   }
+diff --git a/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_controller_win.h b/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_controller_win.h
+index 4dbbf774a8..4c869a0538 100644
+--- a/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_controller_win.h
++++ b/src/3rdparty/chromium/content/browser/renderer_host/input/stylus_handwriting_controller_win.h
+@@ -5,11 +5,15 @@
+ #ifndef CONTENT_BROWSER_RENDERER_HOST_INPUT_STYLUS_HANDWRITING_CONTROLLER_WIN_H_
+ #define CONTENT_BROWSER_RENDERER_HOST_INPUT_STYLUS_HANDWRITING_CONTROLLER_WIN_H_
+ 
++#if defined(__MINGW32__)
++#include "ShellHandwriting.h"
++#else
+ #include <ShellHandwriting.h>
++#endif
+ #include <msctf.h>
+ #include <winerror.h>
++#include <winrt/base.h>
+ #include <wrl/client.h>
+-#include <wrl/implements.h>
+ 
+ #include "base/functional/callback_forward.h"
+ #include "base/memory/weak_ptr.h"
+@@ -72,7 +76,7 @@ class CONTENT_EXPORT StylusHandwritingControllerWin {
+   virtual ~StylusHandwritingControllerWin();
+ 
+   // Returns the Handwriting Callback Sink Com pointer for testing.
+-  Microsoft::WRL::ComPtr<StylusHandwritingCallbackSinkWin>
++  winrt::com_ptr<StylusHandwritingCallbackSinkWin>
+   GetCallbackSinkForTesting() const;
+ 
+   // Notify the Shell Handwriting API about the intent to write. At this point,
+@@ -103,7 +107,7 @@ class CONTENT_EXPORT StylusHandwritingControllerWin {
+   // Binds required API interfaces if available.
+   void BindInterfaces();
+ 
+-  Microsoft::WRL::ComPtr<StylusHandwritingCallbackSinkWin>
++  winrt::com_ptr<StylusHandwritingCallbackSinkWin>
+       handwriting_callback_sink_;
+   Microsoft::WRL::ComPtr<::ITfHandwriting> handwriting_;
+   // Stores the current text input client where handwriting was initiated. Used
 diff --git a/src/3rdparty/chromium/content/browser/renderer_host/media/media_stream_manager.cc b/src/3rdparty/chromium/content/browser/renderer_host/media/media_stream_manager.cc
-index 76af8e6..855394c 100644
+index 76af8e6c17..855394c44d 100644
 --- a/src/3rdparty/chromium/content/browser/renderer_host/media/media_stream_manager.cc
 +++ b/src/3rdparty/chromium/content/browser/renderer_host/media/media_stream_manager.cc
 @@ -1560,6 +1560,7 @@ MediaStreamManager::MediaStreamManager(
@@ -287,7 +714,7 @@ index 76af8e6..855394c 100644
    audio_service_listener_ = std::make_unique<AudioServiceListener>();
  
 diff --git a/src/3rdparty/chromium/content/browser/speech/tts_platform_impl.cc b/src/3rdparty/chromium/content/browser/speech/tts_platform_impl.cc
-index 2a2c892..c024903 100644
+index 2a2c89228d..c0249037c5 100644
 --- a/src/3rdparty/chromium/content/browser/speech/tts_platform_impl.cc
 +++ b/src/3rdparty/chromium/content/browser/speech/tts_platform_impl.cc
 @@ -21,7 +21,7 @@ TtsPlatform* TtsPlatform::GetInstance() {
@@ -300,16 +727,18 @@ index 2a2c892..c024903 100644
    // client.
    //
 diff --git a/src/3rdparty/chromium/content/child/BUILD.gn b/src/3rdparty/chromium/content/child/BUILD.gn
-index bd706e8..740c856 100644
+index bd706e854a..9ccf0cc3bf 100644
 --- a/src/3rdparty/chromium/content/child/BUILD.gn
 +++ b/src/3rdparty/chromium/content/child/BUILD.gn
-@@ -143,7 +143,15 @@ target(link_target_type, "child") {
+@@ -143,7 +143,17 @@ target(link_target_type, "child") {
      ]
    }
  
 -  if (is_win) {
 +  if (is_mingw) {
 +    sources += [
++      "child_process_sandbox_support_impl_win.cc",
++      "child_process_sandbox_support_impl_win.h",
 +      "font_warmup_win.cc",
 +      "font_warmup_win.h",
 +    ]
@@ -321,7 +750,7 @@ index bd706e8..740c856 100644
        "child_process_sandbox_support_impl_win.cc",
        "child_process_sandbox_support_impl_win.h",
 diff --git a/src/3rdparty/chromium/content/gpu/gpu_main.cc b/src/3rdparty/chromium/content/gpu/gpu_main.cc
-index 5480d56..262b618 100644
+index 5480d56888..262b618ca9 100644
 --- a/src/3rdparty/chromium/content/gpu/gpu_main.cc
 +++ b/src/3rdparty/chromium/content/gpu/gpu_main.cc
 @@ -240,7 +240,7 @@ int GpuMain(MainFunctionParams parameters) {
@@ -334,7 +763,7 @@ index 5480d56..262b618 100644
  
    // Prevent Windows from displaying a modal dialog on failures like not being
 diff --git a/src/3rdparty/chromium/content/ppapi_plugin/ppapi_plugin_main.cc b/src/3rdparty/chromium/content/ppapi_plugin/ppapi_plugin_main.cc
-index b784a12..2c4704e 100644
+index b784a1205c..2c4704ea5f 100644
 --- a/src/3rdparty/chromium/content/ppapi_plugin/ppapi_plugin_main.cc
 +++ b/src/3rdparty/chromium/content/ppapi_plugin/ppapi_plugin_main.cc
 @@ -158,7 +158,7 @@ int PpapiPluginMain(MainFunctionParams parameters) {
@@ -356,7 +785,7 @@ index b784a12..2c4704e 100644
  #endif
    return 0;
 diff --git a/src/3rdparty/chromium/content/renderer/renderer_main_platform_delegate_win.cc b/src/3rdparty/chromium/content/renderer/renderer_main_platform_delegate_win.cc
-index e54dcaa..9ba66c5 100644
+index e54dcaa6ed..9ba66c5369 100644
 --- a/src/3rdparty/chromium/content/renderer/renderer_main_platform_delegate_win.cc
 +++ b/src/3rdparty/chromium/content/renderer/renderer_main_platform_delegate_win.cc
 @@ -54,16 +54,20 @@ void RendererMainPlatformDelegate::PlatformInitialize() {
@@ -381,7 +810,7 @@ index e54dcaa..9ba66c5 100644
  
  bool RendererMainPlatformDelegate::EnableSandbox() {
 diff --git a/src/3rdparty/chromium/content/shell/BUILD.gn b/src/3rdparty/chromium/content/shell/BUILD.gn
-index 72300bf..3deb882 100644
+index 72300bfc01..3deb8828c3 100644
 --- a/src/3rdparty/chromium/content/shell/BUILD.gn
 +++ b/src/3rdparty/chromium/content/shell/BUILD.gn
 @@ -1085,7 +1085,7 @@ group("content_shell_crash_test") {
@@ -394,7 +823,7 @@ index 72300bf..3deb882 100644
    }
    if (is_posix) {
 diff --git a/src/3rdparty/chromium/content/utility/services.cc b/src/3rdparty/chromium/content/utility/services.cc
-index 8624628..0f87d29 100644
+index 8624628c51..0f87d291e8 100644
 --- a/src/3rdparty/chromium/content/utility/services.cc
 +++ b/src/3rdparty/chromium/content/utility/services.cc
 @@ -299,7 +299,7 @@ auto RunAccessibilityService(

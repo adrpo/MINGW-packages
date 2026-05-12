@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/gn/build/build_mingw.ninja.template b/src/3rdparty/gn/build/build_mingw.ninja.template
-index b1bf9ff..27339a7 100644
+index b1bf9ff560..27339a7f63 100644
 --- a/src/3rdparty/gn/build/build_mingw.ninja.template
 +++ b/src/3rdparty/gn/build/build_mingw.ninja.template
 @@ -5,7 +5,7 @@ rule cxx
@@ -12,7 +12,7 @@ index b1bf9ff..27339a7 100644
  
  rule link
 diff --git a/src/3rdparty/gn/build/gen.py b/src/3rdparty/gn/build/gen.py
-index 5d07c8b..f00241d 100755
+index 5d07c8becc..f00241d6f8 100644
 --- a/src/3rdparty/gn/build/gen.py
 +++ b/src/3rdparty/gn/build/gen.py
 @@ -40,7 +40,10 @@ class Platform(object):
@@ -48,7 +48,7 @@ index 5d07c8b..f00241d 100755
          ldflags.append('-Wl,-dead_strip')
        elif not platform.is_aix() and not platform.is_solaris() and not platform.is_zos():
 diff --git a/src/3rdparty/gn/src/gn/ninja_binary_target_writer.cc b/src/3rdparty/gn/src/gn/ninja_binary_target_writer.cc
-index 0d23087..cd20d15 100644
+index 0d23087146..cd20d156f0 100644
 --- a/src/3rdparty/gn/src/gn/ninja_binary_target_writer.cc
 +++ b/src/3rdparty/gn/src/gn/ninja_binary_target_writer.cc
 @@ -379,7 +379,11 @@ void NinjaBinaryTargetWriter::WriteLinkerFlags(

@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/sandbox/win/BUILD.gn b/src/3rdparty/chromium/sandbox/win/BUILD.gn
-index 5c47439..4a3da81 100644
+index 5c47439697..4a3da815ed 100644
 --- a/src/3rdparty/chromium/sandbox/win/BUILD.gn
 +++ b/src/3rdparty/chromium/sandbox/win/BUILD.gn
 @@ -188,10 +188,17 @@ static_library("sandbox") {
@@ -24,30 +24,8 @@ index 5c47439..4a3da81 100644
  }
  
  test("sbox_integration_tests") {
-diff --git a/src/3rdparty/chromium/sandbox/win/src/interception_agent.cc b/src/3rdparty/chromium/sandbox/win/src/interception_agent.cc
-index 519b686..227b265 100644
---- a/src/3rdparty/chromium/sandbox/win/src/interception_agent.cc
-+++ b/src/3rdparty/chromium/sandbox/win/src/interception_agent.cc
-@@ -47,7 +47,7 @@ InterceptionAgent* InterceptionAgent::GetInterceptionAgent() {
- 
-     size_t array_bytes = g_interceptions->num_intercepted_dlls * sizeof(void*);
-     s_singleton = reinterpret_cast<InterceptionAgent*>(
--        new (NT_ALLOC) char[array_bytes + sizeof(InterceptionAgent)]);
-+        new char[array_bytes + sizeof(InterceptionAgent)]);
- 
-     bool success = s_singleton->Init(g_interceptions);
-     if (!success) {
-@@ -111,7 +111,7 @@ bool InterceptionAgent::OnDllLoad(const UNICODE_STRING* full_path,
-   size_t buffer_bytes = offsetof(DllInterceptionData, thunks) +
-                         dll_info->num_functions * sizeof(ThunkData);
-   dlls_[i] = reinterpret_cast<DllInterceptionData*>(
--      new (NT_PAGE, base_address) char[buffer_bytes]);
-+      new char[buffer_bytes]);
- 
-   DCHECK_NT(dlls_[i]);
-   if (!dlls_[i])
 diff --git a/src/3rdparty/chromium/sandbox/win/src/nt_internals.h b/src/3rdparty/chromium/sandbox/win/src/nt_internals.h
-index 8df2c68..4844504 100644
+index 8df2c686ea..4844504975 100644
 --- a/src/3rdparty/chromium/sandbox/win/src/nt_internals.h
 +++ b/src/3rdparty/chromium/sandbox/win/src/nt_internals.h
 @@ -40,12 +40,14 @@ typedef NTSTATUS(WINAPI* NtOpenFileFunction)(OUT PHANDLE FileHandle,
@@ -144,8 +122,36 @@ index 8df2c68..4844504 100644
  
  typedef NTSTATUS(WINAPI* NtQueryObjectFunction)(
      IN HANDLE Handle,
+diff --git a/src/3rdparty/chromium/sandbox/win/src/sandbox_nt_util.h b/src/3rdparty/chromium/sandbox/win/src/sandbox_nt_util.h
+--- a/src/3rdparty/chromium/sandbox/win/src/sandbox_nt_util.h
++++ b/src/3rdparty/chromium/sandbox/win/src/sandbox_nt_util.h
+@@ -41,6 +41,24 @@ void* __cdecl operator new(size_t size,
+ void __cdecl operator delete(void* memory,
+                              void* buffer,
+                              sandbox::AllocationType type);
++
++// Array forms. Required so MinGW/clang can compile placement
++// `new (NT_ALLOC) T[N]` / `new (NT_PAGE, base) T[N]`. Without these,
++// `T[N]` resolves to libstdc++'s ::operator new[] which is unsafe inside
++// the early NtMapViewOfSection interceptor (target's CRT/IAT not ready).
++void* __cdecl operator new[](size_t size,
++                             sandbox::AllocationType type,
++                             void* near_to = nullptr);
++void __cdecl operator delete[](void* memory, sandbox::AllocationType type);
++void __cdecl operator delete[](void* memory,
++                               sandbox::AllocationType type,
++                               void* near_to);
++void* __cdecl operator new[](size_t size,
++                             void* buffer,
++                             sandbox::AllocationType type);
++void __cdecl operator delete[](void* memory,
++                               void* buffer,
++                               sandbox::AllocationType type);
+ 
+ // DCHECK_NT is defined to be pretty much an assert at this time because we
+ // don't have logging from the ntdll layer on the child.
 diff --git a/src/3rdparty/chromium/sandbox/win/src/sandbox_nt_util.cc b/src/3rdparty/chromium/sandbox/win/src/sandbox_nt_util.cc
-index 26158cc..ea4119c 100644
+index 26158cc3d9..f38bcd19eb 100644
 --- a/src/3rdparty/chromium/sandbox/win/src/sandbox_nt_util.cc
 +++ b/src/3rdparty/chromium/sandbox/win/src/sandbox_nt_util.cc
 @@ -19,6 +19,7 @@
@@ -156,7 +162,17 @@ index 26158cc..ea4119c 100644
  #include "sandbox/win/src/internal_types.h"
  #include "sandbox/win/src/nt_internals.h"
  #include "sandbox/win/src/sandbox_factory.h"
-@@ -326,7 +327,9 @@ NTSTATUS CopyData(void* destination, const void* source, size_t bytes) {
+@@ -35,7 +36,9 @@ namespace {
+ 
+ // Uses value of FILE_INFORMATION_CLASS defined in Wdm.h but not in user-mode.
+ // https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/ne-wdm-_file_information_class
++#if !defined(__MINGW32__)
+ constexpr uint32_t FileRenameInformation = 10;
++#endif
+ 
+ #if defined(_WIN64)
+ // Align a pointer to the next allocation granularity boundary.
+@@ -326,7 +329,9 @@ NTSTATUS CopyData(void* destination, const void* source, size_t bytes) {
    __try {
      GetNtExports()->memcpy(destination, source, bytes);
    } __except (EXCEPTION_EXECUTE_HANDLER) {
@@ -166,16 +182,7 @@ index 26158cc..ea4119c 100644
    }
    return ret;
  }
-@@ -352,7 +355,7 @@ NTSTATUS CopyNameAndAttributes(
-         break;
- 
-       size_t size = in_object->ObjectName->Length / sizeof(wchar_t);
--      out_name->reset(new (NT_ALLOC) wchar_t[size + 1]);
-+      out_name->reset(new wchar_t[size + 1]);
-       if (!*out_name)
-         break;
- 
-@@ -369,7 +372,9 @@ NTSTATUS CopyNameAndAttributes(
+@@ -369,7 +374,9 @@ NTSTATUS CopyNameAndAttributes(
        ret = STATUS_SUCCESS;
      } while (false);
    } __except (EXCEPTION_EXECUTE_HANDLER) {
@@ -185,35 +192,60 @@ index 26158cc..ea4119c 100644
    }
  
    if (!NT_SUCCESS(ret) && *out_name)
-@@ -475,7 +480,7 @@ UNICODE_STRING* AnsiToUnicode(const char* string) {
-       ansi_string.MaximumLength * sizeof(wchar_t) + sizeof(UNICODE_STRING);
+@@ -763,3 +770,33 @@ void* __cdecl operator new(size_t size,
+ void __cdecl operator delete(void* memory,
+                              void* buffer,
+                              sandbox::AllocationType type) {}
++
++// Array forms route to the singular forms above. Required by MinGW so
++// placement new (NT_ALLOC)/(NT_PAGE) array-new resolves to the
++// sandbox-private NT heap, not libstdc++ ::operator new[].
++void* __cdecl operator new[](size_t size,
++                             sandbox::AllocationType type,
++                             void* near_to) {
++  return ::operator new(size, type, near_to);
++}
++
++void __cdecl operator delete[](void* memory,
++                               sandbox::AllocationType type) {
++  ::operator delete(memory, type);
++}
++
++void __cdecl operator delete[](void* memory,
++                               sandbox::AllocationType type,
++                               void* near_to) {
++  ::operator delete(memory, type);
++}
++
++void* __cdecl operator new[](size_t size,
++                             void* buffer,
++                             sandbox::AllocationType type) {
++  return buffer;
++}
++
++void __cdecl operator delete[](void* memory,
++                               void* buffer,
++                               sandbox::AllocationType type) {}
+diff --git a/src/3rdparty/chromium/sandbox/win/src/signed_interception.cc b/src/3rdparty/chromium/sandbox/win/src/signed_interception.cc
+index 05581224d3..ef7b5e6193 100644
+--- a/src/3rdparty/chromium/sandbox/win/src/signed_interception.cc
++++ b/src/3rdparty/chromium/sandbox/win/src/signed_interception.cc
+@@ -69,8 +69,11 @@ TargetNtCreateSection(NtCreateSectionFunction orig_CreateSection,
+     }
  
-   UNICODE_STRING* out_string =
--      reinterpret_cast<UNICODE_STRING*>(new (NT_ALLOC) char[name_bytes]);
-+      reinterpret_cast<UNICODE_STRING*>(new char[name_bytes]);
-   if (!out_string)
-     return nullptr;
- 
-@@ -558,7 +563,7 @@ UNICODE_STRING* GetBackingFilePath(PVOID address) {
- 
-   for (;;) {
-     MEMORY_SECTION_NAME* section_name = reinterpret_cast<MEMORY_SECTION_NAME*>(
--        new (NT_ALLOC) char[buffer_bytes]);
-+        new char[buffer_bytes]);
- 
-     if (!section_name)
-       return nullptr;
-@@ -611,7 +616,7 @@ UNICODE_STRING* ExtractModuleName(const UNICODE_STRING* module_path) {
-   // Because module_path is a UNICODE_STRING, size_bytes will be small enough
-   // to make the static_cast below safe.
-   DCHECK_NT(UINT16_MAX > size_bytes);
--  char* str_buffer = new (NT_ALLOC) char[size_bytes + sizeof(UNICODE_STRING)];
-+  char* str_buffer = new char[size_bytes + sizeof(UNICODE_STRING)];
-   if (!str_buffer)
-     return nullptr;
- 
+     CountedParameterSet<NameBased> params;
++#if defined(__MINGW32__) // is named Name instead of ObjectName in msys2/ucrt64
++    params[NameBased::NAME] = ParamPickerMake(path->Name.Buffer);
++#else
+     params[NameBased::NAME] = ParamPickerMake(path->ObjectName.Buffer);
+-
++#endif
+     // Check if this will be sent to the broker.
+     if (!QueryBroker(IpcTag::NTCREATESECTION, params.GetBase()))
+       break;
+
 diff --git a/src/3rdparty/chromium/sandbox/win/src/target_process.cc b/src/3rdparty/chromium/sandbox/win/src/target_process.cc
-index df0be21..4c963d8 100644
+index df0be21c8b..4c963d8a55 100644
 --- a/src/3rdparty/chromium/sandbox/win/src/target_process.cc
 +++ b/src/3rdparty/chromium/sandbox/win/src/target_process.cc
 @@ -249,7 +249,7 @@ ResultCode TargetProcess::TransferVariable(const char* name,
@@ -226,7 +258,7 @@ index df0be21..4c963d8 100644
  
    if (!target_address)
 diff --git a/src/3rdparty/chromium/sandbox/win/src/win_utils.cc b/src/3rdparty/chromium/sandbox/win/src/win_utils.cc
-index 6ebaf2c..0ef44a9 100644
+index 6ebaf2c83d..0ef44a91f1 100644
 --- a/src/3rdparty/chromium/sandbox/win/src/win_utils.cc
 +++ b/src/3rdparty/chromium/sandbox/win/src/win_utils.cc
 @@ -98,8 +98,8 @@ std::optional<std::wstring> GetPathFromHandle(HANDLE handle) {

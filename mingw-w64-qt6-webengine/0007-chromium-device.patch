@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/device/base/BUILD.gn b/src/3rdparty/chromium/device/base/BUILD.gn
-index cbd3ac8..0aee94c 100644
+index cbd3ac8cd0..0aee94cc8f 100644
 --- a/src/3rdparty/chromium/device/base/BUILD.gn
 +++ b/src/3rdparty/chromium/device/base/BUILD.gn
 @@ -31,6 +31,10 @@ component("base") {
@@ -15,7 +15,7 @@ index cbd3ac8..0aee94c 100644
    }
  }
 diff --git a/src/3rdparty/chromium/device/base/device_base_export.h b/src/3rdparty/chromium/device/base/device_base_export.h
-index 8672b65..65f6608 100644
+index 8672b65e8b..65f66083c3 100644
 --- a/src/3rdparty/chromium/device/base/device_base_export.h
 +++ b/src/3rdparty/chromium/device/base/device_base_export.h
 @@ -5,7 +5,8 @@
@@ -45,7 +45,7 @@ index 8672b65..65f6608 100644
  #else
  #define DEVICE_BASE_EXPORT
 diff --git a/src/3rdparty/chromium/device/base/device_info_query_win.cc b/src/3rdparty/chromium/device/base/device_info_query_win.cc
-index f99c605..8c279f6 100644
+index f99c605c8f..8c279f6a6e 100644
 --- a/src/3rdparty/chromium/device/base/device_info_query_win.cc
 +++ b/src/3rdparty/chromium/device/base/device_info_query_win.cc
 @@ -46,7 +46,7 @@ bool DeviceInfoQueryWin::GetDeviceStringProperty(const DEVPROPKEY& property,
@@ -67,7 +67,7 @@ index f99c605..8c279f6 100644
            reinterpret_cast<PBYTE>(base::WriteInto(&buffer, required_size)),
            required_size, nullptr, 0)) {
 diff --git a/src/3rdparty/chromium/device/bluetooth/BUILD.gn b/src/3rdparty/chromium/device/bluetooth/BUILD.gn
-index af32815..a0cfec4 100644
+index af32815b30..a0cfec4a75 100644
 --- a/src/3rdparty/chromium/device/bluetooth/BUILD.gn
 +++ b/src/3rdparty/chromium/device/bluetooth/BUILD.gn
 @@ -13,7 +13,7 @@ if (is_android) {
@@ -117,7 +117,7 @@ index af32815..a0cfec4 100644
    }
  
 diff --git a/src/3rdparty/chromium/device/bluetooth/bluetooth_adapter_win.cc b/src/3rdparty/chromium/device/bluetooth/bluetooth_adapter_win.cc
-index b37b0ae..8d8085f 100644
+index b37b0ae090..8d8085fda1 100644
 --- a/src/3rdparty/chromium/device/bluetooth/bluetooth_adapter_win.cc
 +++ b/src/3rdparty/chromium/device/bluetooth/bluetooth_adapter_win.cc
 @@ -20,7 +20,9 @@
@@ -141,7 +141,7 @@ index b37b0ae..8d8085f 100644
  
  // static
 diff --git a/src/3rdparty/chromium/device/bluetooth/bluetooth_export.h b/src/3rdparty/chromium/device/bluetooth/bluetooth_export.h
-index 7b82a39..3e99299 100644
+index 7b82a39e07..3e9929976c 100644
 --- a/src/3rdparty/chromium/device/bluetooth/bluetooth_export.h
 +++ b/src/3rdparty/chromium/device/bluetooth/bluetooth_export.h
 @@ -5,7 +5,8 @@
@@ -171,7 +171,7 @@ index 7b82a39..3e99299 100644
  #else
  #define DEVICE_BLUETOOTH_EXPORT
 diff --git a/src/3rdparty/chromium/device/bluetooth/bluetooth_init_win.cc b/src/3rdparty/chromium/device/bluetooth/bluetooth_init_win.cc
-index 6dfae97..2ea4fa0 100644
+index 6dfae970e3..2ea4fa0a02 100644
 --- a/src/3rdparty/chromium/device/bluetooth/bluetooth_init_win.cc
 +++ b/src/3rdparty/chromium/device/bluetooth/bluetooth_init_win.cc
 @@ -6,6 +6,7 @@
@@ -191,7 +191,7 @@ index 6dfae97..2ea4fa0 100644
  namespace device {
  namespace bluetooth_init_win {
 diff --git a/src/3rdparty/chromium/device/fido/virtual_ctap2_device.cc b/src/3rdparty/chromium/device/fido/virtual_ctap2_device.cc
-index fb4c5c8..bc52403 100644
+index fb4c5c84a3..bc52403b67 100644
 --- a/src/3rdparty/chromium/device/fido/virtual_ctap2_device.cc
 +++ b/src/3rdparty/chromium/device/fido/virtual_ctap2_device.cc
 @@ -11,6 +11,7 @@
@@ -203,7 +203,7 @@ index fb4c5c8..bc52403 100644
  #include <set>
  #include <string>
 diff --git a/src/3rdparty/chromium/device/gamepad/BUILD.gn b/src/3rdparty/chromium/device/gamepad/BUILD.gn
-index eaf1dc3..e8699fb 100644
+index eaf1dc33b9..e8699fb052 100644
 --- a/src/3rdparty/chromium/device/gamepad/BUILD.gn
 +++ b/src/3rdparty/chromium/device/gamepad/BUILD.gn
 @@ -89,8 +89,18 @@ component("gamepad") {
@@ -227,7 +227,7 @@ index eaf1dc3..e8699fb 100644
  
    if (is_linux || is_chromeos) {
 diff --git a/src/3rdparty/chromium/device/gamepad/gamepad_export.h b/src/3rdparty/chromium/device/gamepad/gamepad_export.h
-index 3479e78..d663a45 100644
+index 3479e78195..d663a4504b 100644
 --- a/src/3rdparty/chromium/device/gamepad/gamepad_export.h
 +++ b/src/3rdparty/chromium/device/gamepad/gamepad_export.h
 @@ -5,7 +5,8 @@
@@ -257,7 +257,7 @@ index 3479e78..d663a45 100644
  #else
  #define DEVICE_GAMEPAD_EXPORT
 diff --git a/src/3rdparty/chromium/device/gamepad/gamepad_platform_data_fetcher.h b/src/3rdparty/chromium/device/gamepad/gamepad_platform_data_fetcher.h
-index e1039f5..8066f81 100644
+index e1039f557b..8066f81a2a 100644
 --- a/src/3rdparty/chromium/device/gamepad/gamepad_platform_data_fetcher.h
 +++ b/src/3rdparty/chromium/device/gamepad/gamepad_platform_data_fetcher.h
 @@ -43,6 +43,7 @@ void AddGamepadPlatformDataFetchers(GamepadDataFetcherManager* manager) {
@@ -279,7 +279,7 @@ index e1039f5..8066f81 100644
    manager->AddFactory(new RawInputDataFetcher::Factory());
  
 diff --git a/src/3rdparty/chromium/device/gamepad/wgi_data_fetcher_win.h b/src/3rdparty/chromium/device/gamepad/wgi_data_fetcher_win.h
-index ef51baa..0fbb879 100644
+index ef51baa462..0fbb879905 100644
 --- a/src/3rdparty/chromium/device/gamepad/wgi_data_fetcher_win.h
 +++ b/src/3rdparty/chromium/device/gamepad/wgi_data_fetcher_win.h
 @@ -5,6 +5,8 @@
@@ -299,7 +299,7 @@ index ef51baa..0fbb879 100644
 +
  #endif  // DEVICE_GAMEPAD_WGI_DATA_FETCHER_WIN_H_
 diff --git a/src/3rdparty/chromium/device/vr/vr_export.h b/src/3rdparty/chromium/device/vr/vr_export.h
-index 43390e1..1674243 100644
+index 43390e1293..1674243d3b 100644
 --- a/src/3rdparty/chromium/device/vr/vr_export.h
 +++ b/src/3rdparty/chromium/device/vr/vr_export.h
 @@ -5,7 +5,8 @@

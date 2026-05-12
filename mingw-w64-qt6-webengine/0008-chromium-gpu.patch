@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/gpu/command_buffer/client/shared_image_interface.cc b/src/3rdparty/chromium/gpu/command_buffer/client/shared_image_interface.cc
-index 8ed9ace..204d5f4 100644
+index 8ed9ace993..204d5f4f3b 100644
 --- a/src/3rdparty/chromium/gpu/command_buffer/client/shared_image_interface.cc
 +++ b/src/3rdparty/chromium/gpu/command_buffer/client/shared_image_interface.cc
 @@ -14,7 +14,7 @@
@@ -29,7 +29,7 @@ index 8ed9ace..204d5f4 100644
  void SharedImageInterface::CreateSharedImagePool(
      const SharedImagePoolId& pool_id,
 diff --git a/src/3rdparty/chromium/gpu/command_buffer/client/shared_image_interface.h b/src/3rdparty/chromium/gpu/command_buffer/client/shared_image_interface.h
-index efac09c..8e47d47 100644
+index efac09c82b..8e47d47a0f 100644
 --- a/src/3rdparty/chromium/gpu/command_buffer/client/shared_image_interface.h
 +++ b/src/3rdparty/chromium/gpu/command_buffer/client/shared_image_interface.h
 @@ -41,7 +41,7 @@ namespace gfx {
@@ -60,22 +60,38 @@ index efac09c..8e47d47 100644
    // Generates an unverified SyncToken that is released after all previous
    // commands on this interface have executed on the service side.
 diff --git a/src/3rdparty/chromium/gpu/command_buffer/service/BUILD.gn b/src/3rdparty/chromium/gpu/command_buffer/service/BUILD.gn
-index 40c4f28..0d0deba 100644
+index 40c4f28f41..818fcb78ba 100644
 --- a/src/3rdparty/chromium/gpu/command_buffer/service/BUILD.gn
 +++ b/src/3rdparty/chromium/gpu/command_buffer/service/BUILD.gn
-@@ -604,7 +604,18 @@ target(link_target_type, "gles2_sources") {
+@@ -101,10 +101,12 @@ if (is_win) {
+   config("service_win_linker_flags") {
+     # This is in a separate config so the flags can be applied to dependents.
+     # ldflags in GN aren't automatically inherited.
+-    ldflags = [
+-      # Linking with OneCore.lib causes the following dlls to load.
+-      "/DELAYLOAD:api-ms-win-core-handle-l1-1-0.dll",
+-    ]
++    if (is_msvc) {
++      ldflags = [
++        # Linking with OneCore.lib causes the following dlls to load.
++        "/DELAYLOAD:api-ms-win-core-handle-l1-1-0.dll",
++      ]
++    }
+   }
+ }
+ 
+@@ -604,7 +606,17 @@ target(link_target_type, "gles2_sources") {
      }
    }
  
 -  if (is_win) {
 +  if (is_mingw) {
-+    sources += [
-+      "shared_image/d3d_image_representation.cc",
-+      "shared_image/d3d_image_representation.h",
-+      "shared_image/d3d_image_utils.cc",
-+      "shared_image/d3d_image_utils.h",
-+    ]
-+    libs = [ "dxguid" ]
++    # The D3D shared-image backing pipeline (d3d_image_backing.cc,
++    # dxgi_shared_handle_manager.cc, dcomp_*) is built only under is_msvc
++    # because it pulls in d3d_shared_fence and DComp APIs that don't compile
++    # with MinGW headers. d3d_image_representation.cc cannot stand alone
++    # without those backing definitions, so it is excluded here too.
++    libs = [ "dxguid", "dxcore" ]
 +    all_dependent_configs = [ ":service_win_linker_flags" ]
 +  }
 +
@@ -84,7 +100,7 @@ index 40c4f28..0d0deba 100644
        "dxgi_shared_handle_manager.cc",
        "dxgi_shared_handle_manager.h",
 diff --git a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/d3d_image_backing.h b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/d3d_image_backing.h
-index 90bb3a4..42c5af2 100644
+index 90bb3a4b35..42c5af206c 100644
 --- a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/d3d_image_backing.h
 +++ b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/d3d_image_backing.h
 @@ -115,8 +115,10 @@ class GPU_GLES2_EXPORT D3DImageBacking final
@@ -98,8 +114,21 @@ index 90bb3a4..42c5af2 100644
  
    bool BeginAccessD3D11(Microsoft::WRL::ComPtr<ID3D11Device> d3d11_device,
                          bool write_access);
+diff --git a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/gl_texture_image_backing.cc b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/gl_texture_image_backing.cc
+index 5a7d987c1a..73c72af6e5 100644
+--- a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/gl_texture_image_backing.cc
++++ b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/gl_texture_image_backing.cc
+@@ -441,7 +441,7 @@ std::unique_ptr<VideoImageRepresentation> GLTextureImageBacking::ProduceVideo(
+     SharedImageManager* manager,
+     MemoryTypeTracker* tracker,
+     VideoDevice device) {
+-#if BUILDFLAG(IS_WIN)
++#if BUILDFLAG(IS_MSVC)
+   DCHECK_EQ(textures_.size(), 1u);
+   DCHECK(device);
+
 diff --git a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_backing.cc b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_backing.cc
-index 6878fb8..888aa44 100644
+index 6878fb87b2..888aa44eeb 100644
 --- a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_backing.cc
 +++ b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_backing.cc
 @@ -20,7 +20,7 @@
@@ -121,7 +150,7 @@ index 6878fb8..888aa44 100644
      scoped_refptr<gfx::D3DSharedFence> external_fence) {
    NOTIMPLEMENTED_LOG_ONCE();
 diff --git a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_backing.h b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_backing.h
-index 9440141..0982009 100644
+index 944014167c..098200913d 100644
 --- a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_backing.h
 +++ b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_backing.h
 @@ -363,7 +363,7 @@ class GPU_GLES2_EXPORT SharedImageBacking {
@@ -134,7 +163,7 @@ index 9440141..0982009 100644
        scoped_refptr<gfx::D3DSharedFence> external_fence);
  #endif
 diff --git a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_factory.cc b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_factory.cc
-index 77a72e4..39b472f 100644
+index 77a72e4dc0..39b472f722 100644
 --- a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_factory.cc
 +++ b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_factory.cc
 @@ -255,7 +255,7 @@ SharedImageFactory::SharedImageFactory(
@@ -190,7 +219,7 @@ index 77a72e4..39b472f 100644
    return shared_image_caps;
  }
 diff --git a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_factory.h b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_factory.h
-index 24fce45..534c006 100644
+index 24fce45e4b..534c0064ac 100644
 --- a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_factory.h
 +++ b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_factory.h
 @@ -105,7 +105,7 @@ class GPU_GLES2_EXPORT SharedImageFactory {
@@ -212,7 +241,7 @@ index 24fce45..534c006 100644
  #if BUILDFLAG(IS_FUCHSIA)
    void RegisterSysmemBufferCollection(zx::eventpair service_handle,
 diff --git a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_manager.cc b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_manager.cc
-index b9bfa8c..39d3df5 100644
+index b9bfa8c7f6..af51a55c8a 100644
 --- a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_manager.cc
 +++ b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_manager.cc
 @@ -28,7 +28,7 @@
@@ -242,8 +271,17 @@ index b9bfa8c..39d3df5 100644
  void SharedImageManager::UpdateExternalFence(
      const Mailbox& mailbox,
      scoped_refptr<gfx::D3DSharedFence> external_fence) {
+@@ -770,7 +770,7 @@ bool SharedImageManager::SupportsScanoutImages() {
+         ->GetPlatformRuntimeProperties()
+         .supports_native_pixmaps;
+   }
+-#elif BUILDFLAG(IS_WIN)
++#elif BUILDFLAG(IS_MSVC)
+   return gl::DirectCompositionTextureSupported();
+ #else
+   return false;
 diff --git a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_manager.h b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_manager.h
-index 531c12e..f330d36 100644
+index 531c12eade..f330d366a7 100644
 --- a/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_manager.h
 +++ b/src/3rdparty/chromium/gpu/command_buffer/service/shared_image/shared_image_manager.h
 @@ -19,7 +19,7 @@
@@ -281,9 +319,9 @@ index 531c12e..f330d36 100644
 +#if BUILDFLAG(IS_MSVC)
    scoped_refptr<DXGISharedHandleManager> dxgi_shared_handle_manager_;
  #endif
- 
+
 diff --git a/src/3rdparty/chromium/gpu/config/BUILD.gn b/src/3rdparty/chromium/gpu/config/BUILD.gn
-index f49a550..28c58e3 100644
+index f49a550850..87b96c70a9 100644
 --- a/src/3rdparty/chromium/gpu/config/BUILD.gn
 +++ b/src/3rdparty/chromium/gpu/config/BUILD.gn
 @@ -108,7 +108,7 @@ if (enable_vulkan) {
@@ -303,26 +341,59 @@ index f49a550..28c58e3 100644
 +    if (is_msvc) {
 +      libs = [ "dxgi.lib" ]
 +    } else {
-+      libs = [ "dxgi" ]
++      libs = [ "dxgi", "dxcore" ]
 +    }
    }
    if (is_mac) {
      sources += [ "gpu_info_collector_mac.mm" ]
 diff --git a/src/3rdparty/chromium/gpu/config/gpu_info_collector_win.cc b/src/3rdparty/chromium/gpu/config/gpu_info_collector_win.cc
-index 4bd1190..0e96b92 100644
+index 4bd1190db6..06a92d671a 100644
 --- a/src/3rdparty/chromium/gpu/config/gpu_info_collector_win.cc
 +++ b/src/3rdparty/chromium/gpu/config/gpu_info_collector_win.cc
-@@ -5,7 +5,9 @@
+@@ -5,7 +5,16 @@
  #include "gpu/config/gpu_info_collector.h"
  
  // C system before C++ system.
 +//#if BUILDFLAG(USE_ML)
++#if defined(__MINGW32__)
++#include <directx/DirectML.h>
++__CRT_UUID_DECL(IDMLDevice, 
++    0xa0884f9a, 0xd2be, 0x4355,
++    0xaa, 0x5d, 0x59, 0x01, 0x28, 0x1a, 0xd1, 0xd2);
++#else
  #include <DirectML.h>
++#endif 
 +//#endif
  #include <d3d11.h>
  #include <d3d11_3.h>
  #include <dxgi.h>
-@@ -453,7 +455,7 @@ void GetGpuSupportedDirectXVersion(uint32_t& d3d12_feature_level,
+@@ -36,8 +45,25 @@
+ #include "third_party/microsoft_dxheaders/src/include/directx/dxcore.h"
+ #else
+ #include <d3d12.h>
++#if defined(__MINGW32__)
++// MinGW's libdxcore.a is just an import lib without the GUID values, and
++// dxguids/dxguids.h does not define the DXCORE_ADAPTER_ATTRIBUTE_* GUIDs.
++// Define INITGUID so the DEFINE_GUID() statements in dxcore_interface.h emit
++// concrete instances in this translation unit.
++#ifndef INITGUID
++#define INITGUID
++#include <guiddef.h> // # adrpo: to define __mingw_uuidof_s before using it in codecapi.h
++#undef INITGUID
++#else
++#include <guiddef.h>
++#endif
++#include <directx/dxcore.h>
++#include <dxguids/dxguids.h>
++
++#else
+ #include <dxcore.h>
+ #endif
++#endif
+ #include "third_party/re2/src/re2/re2.h"
+ #include "ui/gl/direct_composition_support.h"
+ #include "ui/gl/gl_angle_util_win.h"
+@@ -453,7 +479,7 @@ void GetGpuSupportedDirectXVersion(uint32_t& d3d12_feature_level,
      // Check to see if the adapter supports Direct3D 12.
      for (auto level : feature_levels) {
        if (SUCCEEDED(d3d12_create_device_proc(dxgi_adapter.Get(), level,
@@ -332,7 +403,7 @@ index 4bd1190..0e96b92 100644
          d3d12_feature_level = level;
          break;
 diff --git a/src/3rdparty/chromium/gpu/ipc/client/client_shared_image_interface.cc b/src/3rdparty/chromium/gpu/ipc/client/client_shared_image_interface.cc
-index 40801d4..2a2e901 100644
+index 40801d40fa..bf951cc560 100644
 --- a/src/3rdparty/chromium/gpu/ipc/client/client_shared_image_interface.cc
 +++ b/src/3rdparty/chromium/gpu/ipc/client/client_shared_image_interface.cc
 @@ -14,7 +14,7 @@
@@ -344,8 +415,25 @@ index 40801d4..2a2e901 100644
  #include "ui/gfx/win/d3d_shared_fence.h"
  #endif
  
+@@ -226,6 +226,8 @@ void ClientSharedImageInterface::CopyToGpuMemoryBuffer(
+ }
+ 
+ #if BUILDFLAG(IS_WIN)
++
++#if BUILDFLAG(IS_MSVC)
+ void ClientSharedImageInterface::CopyToGpuMemoryBufferAsync(
+     const SyncToken& sync_token,
+     const Mailbox& mailbox,
+@@ -265,6 +267,7 @@ bool ClientSharedImageInterface::IsConnected() {
+   return proxy_->IsConnected();
+ }
+ #endif
++#endif
+ 
+ ClientSharedImageInterface::SwapChainSharedImages
+ ClientSharedImageInterface::CreateSwapChain(viz::SharedImageFormat format,
 diff --git a/src/3rdparty/chromium/gpu/ipc/client/shared_image_interface_proxy.cc b/src/3rdparty/chromium/gpu/ipc/client/shared_image_interface_proxy.cc
-index 5b02cc3..74e61ed 100644
+index 5b02cc3080..74e61ed0da 100644
 --- a/src/3rdparty/chromium/gpu/ipc/client/shared_image_interface_proxy.cc
 +++ b/src/3rdparty/chromium/gpu/ipc/client/shared_image_interface_proxy.cc
 @@ -21,7 +21,7 @@
@@ -409,7 +497,7 @@ index 5b02cc3..74e61ed 100644
  
  #if BUILDFLAG(IS_FUCHSIA)
 diff --git a/src/3rdparty/chromium/gpu/ipc/common/BUILD.gn b/src/3rdparty/chromium/gpu/ipc/common/BUILD.gn
-index 2886b9a..de10731 100644
+index 2886b9ad0c..de10731720 100644
 --- a/src/3rdparty/chromium/gpu/ipc/common/BUILD.gn
 +++ b/src/3rdparty/chromium/gpu/ipc/common/BUILD.gn
 @@ -102,7 +102,7 @@ source_set("ipc_common_sources") {
@@ -422,10 +510,10 @@ index 2886b9a..de10731 100644
    if (use_ozone) {
      sources += [
 diff --git a/src/3rdparty/chromium/gpu/ipc/service/BUILD.gn b/src/3rdparty/chromium/gpu/ipc/service/BUILD.gn
-index 973cd33..73c19a3 100644
+index 973cd337f2..7014eab659 100644
 --- a/src/3rdparty/chromium/gpu/ipc/service/BUILD.gn
 +++ b/src/3rdparty/chromium/gpu/ipc/service/BUILD.gn
-@@ -100,11 +100,19 @@ component("service") {
+@@ -100,11 +100,20 @@ component("service") {
        "gpu_memory_buffer_factory_dxgi.h",
        "image_transport_surface_win.cc",
      ]
@@ -445,13 +533,14 @@ index 973cd33..73c19a3 100644
 +        "d3d11",
 +        "dcomp",
 +        "dxguid",
++        "dxcore",
 +      ]
 +    }
    }
    if (is_apple) {
      sources += [
 diff --git a/src/3rdparty/chromium/gpu/ipc/service/shared_image_stub.cc b/src/3rdparty/chromium/gpu/ipc/service/shared_image_stub.cc
-index 91caf7f..1541e52 100644
+index 91caf7f961..dc3bbbbc85 100644
 --- a/src/3rdparty/chromium/gpu/ipc/service/shared_image_stub.cc
 +++ b/src/3rdparty/chromium/gpu/ipc/service/shared_image_stub.cc
 @@ -28,7 +28,7 @@
@@ -499,15 +588,22 @@ index 91caf7f..1541e52 100644
    registered_dxgi_fences_.erase(mailbox);
  #endif
  }
-@@ -432,7 +432,7 @@ void SharedImageStub::OnCopyToGpuMemoryBuffer(const Mailbox& mailbox) {
+@@ -432,7 +432,6 @@ void SharedImageStub::OnCopyToGpuMemoryBuffer(const Mailbox& mailbox) {
    }
  }
  
 -#if BUILDFLAG(IS_WIN)
-+#if BUILDFLAG(IS_MSVC)
  void SharedImageStub::CopyToGpuMemoryBufferAsync(
      const Mailbox& mailbox,
      base::OnceCallback<void(bool)> callback) {
+@@ -447,6 +446,7 @@ void SharedImageStub::CopyToGpuMemoryBufferAsync(
+   }
+ }
+ 
++#if BUILDFLAG(IS_MSVC)
+ void SharedImageStub::OnCreateSwapChain(
+     mojom::CreateSwapChainParamsPtr params) {
+   TRACE_EVENT0("gpu", "SharedImageStub::OnCreateSwapChain");
 @@ -563,7 +563,7 @@ void SharedImageStub::OnUnregisterDxgiFence(const Mailbox& mailbox,
    mailbox_fences.erase(fence_it);
  }
@@ -518,7 +614,7 @@ index 91caf7f..1541e52 100644
  #if BUILDFLAG(IS_FUCHSIA)
  void SharedImageStub::RegisterSysmemBufferCollection(
 diff --git a/src/3rdparty/chromium/gpu/ipc/service/shared_image_stub.h b/src/3rdparty/chromium/gpu/ipc/service/shared_image_stub.h
-index 6b0e287..2437c6e 100644
+index 6b0e2876f4..dac3329a5d 100644
 --- a/src/3rdparty/chromium/gpu/ipc/service/shared_image_stub.h
 +++ b/src/3rdparty/chromium/gpu/ipc/service/shared_image_stub.h
 @@ -18,7 +18,7 @@
@@ -530,15 +626,6 @@ index 6b0e287..2437c6e 100644
  class D3DSharedFence;
  #endif
  
-@@ -85,7 +85,7 @@ class GPU_IPC_SERVICE_EXPORT SharedImageStub : public MemoryTracker {
-   bool UpdateSharedImage(const Mailbox& mailbox,
-                          gfx::GpuFenceHandle in_fence_handle);
- 
--#if BUILDFLAG(IS_WIN)
-+#if BUILDFLAG(IS_MSVC)
-   void CopyToGpuMemoryBufferAsync(const Mailbox& mailbox,
-                                   base::OnceCallback<void(bool)> callback);
- #endif
 @@ -117,7 +117,7 @@ class GPU_IPC_SERVICE_EXPORT SharedImageStub : public MemoryTracker {
    void OnDestroySharedImage(const Mailbox& mailbox);
    void OnRegisterSharedImageUploadBuffer(base::ReadOnlySharedMemoryRegion shm);
@@ -566,3 +653,56 @@ index 6b0e287..2437c6e 100644
    // Fences held by external processes. Registered and signaled from ipc
    // channel. Using DXGIHandleToken to identify the fence.
    base::flat_map<Mailbox, base::flat_set<scoped_refptr<gfx::D3DSharedFence>>>
+diff --git a/src/3rdparty/chromium/gpu/skia_bindings/gl_bindings_skia_cmd_buffer.cc b/src/3rdparty/chromium/gpu/skia_bindings/gl_bindings_skia_cmd_buffer.cc
+index dd654c969c..df8ba0e35e 100644
+--- a/src/3rdparty/chromium/gpu/skia_bindings/gl_bindings_skia_cmd_buffer.cc
++++ b/src/3rdparty/chromium/gpu/skia_bindings/gl_bindings_skia_cmd_buffer.cc
+@@ -52,8 +52,8 @@ namespace skia_bindings {
+ sk_sp<GrGLInterface> CreateGLES2InterfaceBindings(
+     GLES2Interface* impl,
+     ContextSupport* context_support) {
+-  sk_sp<GrGLInterface> interface(new GrGLInterface);
+-  interface->fStandard = kGLES_GrGLStandard;
++  sk_sp<GrGLInterface> myinterface(new GrGLInterface);
++  myinterface->fStandard = kGLES_GrGLStandard;
+ 
+   // Allowing Skia to use GL ES 3.0 caused a perf test regression (see Issue
+   // 719572). Until that can be understood we are limiting to ES 2.0 (with
+@@ -67,10 +67,10 @@ sk_sp<GrGLInterface> CreateGLES2InterfaceBindings(
+       gles_bind(&GLES2Interface::GetStringi, impl, context_support);
+   auto get_integerv =
+       gles_bind(&GLES2Interface::GetIntegerv, impl, context_support);
+-  interface->fExtensions.init(kGLES_GrGLStandard, get_string, get_stringi,
++  myinterface->fExtensions.init(kGLES_GrGLStandard, get_string, get_stringi,
+                               get_integerv);
+ 
+-  GrGLInterface::Functions* functions = &interface->fFunctions;
++  GrGLInterface::Functions* functions = &myinterface->fFunctions;
+   functions->fActiveTexture =
+       gles_bind(&GLES2Interface::ActiveTexture, impl, context_support);
+   functions->fAttachShader =
+@@ -405,7 +405,7 @@ sk_sp<GrGLInterface> CreateGLES2InterfaceBindings(
+     // This method is only used for GL_PROGRAM_BINARY_RETRIEVABLE_HINT in ES3.
+     LOG(FATAL) << "Skia shouldn't use program binaries over the command buffer";
+   };
+-  return interface;
++  return myinterface;
+ }
+ 
+ }  // namespace skia_bindings
+diff --git a/src/3rdparty/chromium/gpu/skia_bindings/grcontext_for_gles2_interface.cc b/src/3rdparty/chromium/gpu/skia_bindings/grcontext_for_gles2_interface.cc
+index f4331e8c54..6d90f43b0c 100644
+--- a/src/3rdparty/chromium/gpu/skia_bindings/grcontext_for_gles2_interface.cc
++++ b/src/3rdparty/chromium/gpu/skia_bindings/grcontext_for_gles2_interface.cc
+@@ -40,9 +40,9 @@ GrContextForGLES2Interface::GrContextForGLES2Interface(
+   // rolls are in.
+   options.fInternalMultisampleCount = 0;
+   options.fSupportBilerpFromGlyphAtlas = support_bilerp_from_flyph_atlas;
+-  sk_sp<GrGLInterface> interface(
++  sk_sp<GrGLInterface> myinterface(
+       skia_bindings::CreateGLES2InterfaceBindings(gl, context_support));
+-  gr_context_ = GrDirectContexts::MakeGL(std::move(interface), options);
++  gr_context_ = GrDirectContexts::MakeGL(std::move(myinterface), options);
+   if (gr_context_) {
+     gr_context_->setResourceCacheLimit(max_resource_cache_bytes);
+     context_support_->SetGrContext(gr_context_.get());

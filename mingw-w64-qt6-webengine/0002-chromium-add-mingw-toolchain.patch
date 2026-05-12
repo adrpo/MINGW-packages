@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/BUILD.gn b/src/3rdparty/chromium/BUILD.gn
-index 8c04871..1952f7c 100644
+index 8c04871d86..1952f7cbf8 100644
 --- a/src/3rdparty/chromium/BUILD.gn
 +++ b/src/3rdparty/chromium/BUILD.gn
 @@ -680,7 +680,7 @@ group("gn_all") {
@@ -41,7 +41,7 @@ index 8c04871..1952f7c 100644
        "//chrome/installer/mini_installer:mini_installer",
        "//components:components_perftests",
 diff --git a/src/3rdparty/chromium/build/build_config.h b/src/3rdparty/chromium/build/build_config.h
-index 8d4895b..792b5d7 100644
+index 8d4895be9f..792b5d7018 100644
 --- a/src/3rdparty/chromium/build/build_config.h
 +++ b/src/3rdparty/chromium/build/build_config.h
 @@ -262,6 +262,18 @@
@@ -76,7 +76,7 @@ index 8d4895b..792b5d7 100644
 +
  #endif  // BUILD_BUILD_CONFIG_H_
 diff --git a/src/3rdparty/chromium/build/config/BUILD.gn b/src/3rdparty/chromium/build/config/BUILD.gn
-index b85ffcd..16c9b0e 100644
+index b85ffcde3f..16c9b0ef08 100644
 --- a/src/3rdparty/chromium/build/config/BUILD.gn
 +++ b/src/3rdparty/chromium/build/config/BUILD.gn
 @@ -206,6 +206,31 @@ config("default_libs") {
@@ -130,7 +130,7 @@ index b85ffcd..16c9b0e 100644
      }
    }
 diff --git a/src/3rdparty/chromium/build/config/BUILDCONFIG.gn b/src/3rdparty/chromium/build/config/BUILDCONFIG.gn
-index a1d8157..73de34c 100644
+index a1d81572a9..73de34cc1c 100644
 --- a/src/3rdparty/chromium/build/config/BUILDCONFIG.gn
 +++ b/src/3rdparty/chromium/build/config/BUILDCONFIG.gn
 @@ -232,16 +232,20 @@ if (host_toolchain == "") {
@@ -181,7 +181,7 @@ index a1d8157..73de34c 100644
  } else if (target_os == "winuwp") {
    # Only target WinUWP on for a Windows store application and only
 diff --git a/src/3rdparty/chromium/build/config/compiler/BUILD.gn b/src/3rdparty/chromium/build/config/compiler/BUILD.gn
-index 0fe042f..56bff76 100644
+index 0fe042f57b..56bff76023 100644
 --- a/src/3rdparty/chromium/build/config/compiler/BUILD.gn
 +++ b/src/3rdparty/chromium/build/config/compiler/BUILD.gn
 @@ -292,7 +292,7 @@ config("compiler") {
@@ -388,7 +388,7 @@ index 0fe042f..56bff76 100644
          cflags += [ "-gdwarf-5" ]
          rustflags += [ "-Zdwarf-version=5" ]
 diff --git a/src/3rdparty/chromium/build/config/gcc/BUILD.gn b/src/3rdparty/chromium/build/config/gcc/BUILD.gn
-index a659210..be24b50 100644
+index a659210b19..be24b50cca 100644
 --- a/src/3rdparty/chromium/build/config/gcc/BUILD.gn
 +++ b/src/3rdparty/chromium/build/config/gcc/BUILD.gn
 @@ -31,7 +31,9 @@ declare_args() {
@@ -432,7 +432,7 @@ index a659210..be24b50 100644
        # TODO(GYP): Do we need a check on the binutils version here?
        #
 diff --git a/src/3rdparty/chromium/build/config/linux/pkg-config.py b/src/3rdparty/chromium/build/config/linux/pkg-config.py
-index e3e582d..e0cebba 100755
+index e3e582d2ee..e0cebba9df 100644
 --- a/src/3rdparty/chromium/build/config/linux/pkg-config.py
 +++ b/src/3rdparty/chromium/build/config/linux/pkg-config.py
 @@ -113,7 +113,7 @@ def main():
@@ -445,7 +445,7 @@ index e3e582d..e0cebba 100755
      return 0
  
 diff --git a/src/3rdparty/chromium/build/config/sanitizers/BUILD.gn b/src/3rdparty/chromium/build/config/sanitizers/BUILD.gn
-index 8c052a3..bd0f66d 100644
+index 8c052a3bdd..bd0f66d325 100644
 --- a/src/3rdparty/chromium/build/config/sanitizers/BUILD.gn
 +++ b/src/3rdparty/chromium/build/config/sanitizers/BUILD.gn
 @@ -276,7 +276,7 @@ config("default_sanitizer_ldflags") {
@@ -467,7 +467,7 @@ index 8c052a3..bd0f66d 100644
            "/Oy-",
            "/Ob0",
 diff --git a/src/3rdparty/chromium/build/config/win/BUILD.gn b/src/3rdparty/chromium/build/config/win/BUILD.gn
-index 41481f3..9e0c296 100644
+index 41481f3a76..9e0c29618e 100644
 --- a/src/3rdparty/chromium/build/config/win/BUILD.gn
 +++ b/src/3rdparty/chromium/build/config/win/BUILD.gn
 @@ -54,6 +54,12 @@ declare_args() {
@@ -655,7 +655,7 @@ index 41481f3..9e0c296 100644
      subsystem_version_suffix = "10.0"
  }
 diff --git a/src/3rdparty/chromium/build/config/win/visual_studio_version.gni b/src/3rdparty/chromium/build/config/win/visual_studio_version.gni
-index 290dccd..a1244d0 100644
+index 290dccd038..a1244d0fc3 100644
 --- a/src/3rdparty/chromium/build/config/win/visual_studio_version.gni
 +++ b/src/3rdparty/chromium/build/config/win/visual_studio_version.gni
 @@ -24,7 +24,7 @@ declare_args() {
@@ -668,7 +668,7 @@ index 290dccd..a1244d0 100644
        exec_script("../../vs_toolchain.py", [ "get_toolchain_dir" ], "scope")
    visual_studio_path = toolchain_data.vs_path
 diff --git a/src/3rdparty/chromium/build/nocompile.gni b/src/3rdparty/chromium/build/nocompile.gni
-index eee6730..cbd1cc4 100644
+index eee6730673..cbd1cc45c3 100644
 --- a/src/3rdparty/chromium/build/nocompile.gni
 +++ b/src/3rdparty/chromium/build/nocompile.gni
 @@ -50,7 +50,7 @@
@@ -699,7 +699,7 @@ index eee6730..cbd1cc4 100644
            # On non-Windows platforms, clang can generate the depfile.
            "-MMD",
 diff --git a/src/3rdparty/chromium/build/toolchain/gcc_solink_wrapper.py b/src/3rdparty/chromium/build/toolchain/gcc_solink_wrapper.py
-index 0dae7ab..f402102 100755
+index 0dae7ab552..f402102dc7 100644
 --- a/src/3rdparty/chromium/build/toolchain/gcc_solink_wrapper.py
 +++ b/src/3rdparty/chromium/build/toolchain/gcc_solink_wrapper.py
 @@ -24,6 +24,9 @@ def CollectSONAME(args):
@@ -753,7 +753,7 @@ index 0dae7ab..f402102 100755
    if dwp_proc:
      dwp_result = dwp_proc.wait()
 diff --git a/src/3rdparty/chromium/build/toolchain/gcc_toolchain.gni b/src/3rdparty/chromium/build/toolchain/gcc_toolchain.gni
-index 9f4900e..cfcdcd1 100644
+index 9f4900e2ee..cfcdcd1cf1 100644
 --- a/src/3rdparty/chromium/build/toolchain/gcc_toolchain.gni
 +++ b/src/3rdparty/chromium/build/toolchain/gcc_toolchain.gni
 @@ -64,6 +64,7 @@ if (enable_resource_allowlist_generation) {
@@ -828,7 +828,7 @@ index 9f4900e..cfcdcd1 100644
        # Generate a map file to be used for binary size analysis.
        # Map file adds ~10% to the link time on a z620.
 diff --git a/src/3rdparty/chromium/build/toolchain/win/BUILD.gn b/src/3rdparty/chromium/build/toolchain/win/BUILD.gn
-index 97ae780..bddd219 100644
+index 97ae780598..bddd21948d 100644
 --- a/src/3rdparty/chromium/build/toolchain/win/BUILD.gn
 +++ b/src/3rdparty/chromium/build/toolchain/win/BUILD.gn
 @@ -6,7 +6,7 @@ import("//build/config/win/visual_studio_version.gni")
@@ -903,7 +903,7 @@ index 97ae780..bddd219 100644
 +  }
 +}
 diff --git a/src/3rdparty/chromium/build/toolchain/win/toolchain.gni b/src/3rdparty/chromium/build/toolchain/win/toolchain.gni
-index de3c192..f2e4857 100644
+index de3c192cbc..f2e4857df8 100644
 --- a/src/3rdparty/chromium/build/toolchain/win/toolchain.gni
 +++ b/src/3rdparty/chromium/build/toolchain/win/toolchain.gni
 @@ -10,7 +10,12 @@ import("//build/config/win/visual_studio_version.gni")
@@ -950,7 +950,7 @@ index de3c192..f2e4857 100644
 +  }
 +}
 diff --git a/src/3rdparty/chromium/build/util/lastchange.py b/src/3rdparty/chromium/build/util/lastchange.py
-index 4dd828e..4a920c1 100755
+index 4dd828e310..4a920c1124 100644
 --- a/src/3rdparty/chromium/build/util/lastchange.py
 +++ b/src/3rdparty/chromium/build/util/lastchange.py
 @@ -201,6 +201,8 @@ def GetGitTopDirectory(source_dir):
@@ -963,7 +963,7 @@ index 4dd828e..4a920c1 100755
  
  
 diff --git a/src/3rdparty/chromium/build/win/BUILD.gn b/src/3rdparty/chromium/build/win/BUILD.gn
-index 0c47c2c..ce77dd1 100644
+index 0c47c2c8c6..ce77dd1c69 100644
 --- a/src/3rdparty/chromium/build/win/BUILD.gn
 +++ b/src/3rdparty/chromium/build/win/BUILD.gn
 @@ -16,7 +16,7 @@ windows_manifest("default_exe_manifest") {
@@ -984,3 +984,107 @@ index 0c47c2c..ce77dd1 100644
 +    data = []
 +  }
  }
+diff --git a/src/3rdparty/chromium/build/precompile.h b/src/3rdparty/chromium/build/precompile.h
+index 046aac81c6..458f38d462 100644
+--- a/src/3rdparty/chromium/build/precompile.h
++++ b/src/3rdparty/chromium/build/precompile.h
+@@ -11,6 +11,15 @@
+ 
+ #define BUILD_PRECOMPILE_H_
+ 
++#if defined(__GNUC__) && !defined(__clang__) && !defined(__EXCEPTIONS)
++// GCC 15 introduced -Wtemplate-body which reports errors for standard library
++// template bodies containing __try/__catch when -fno-exceptions is active.
++// These macros expand to if(true)/if(false) so are harmless, but GCC 15
++// treats them as errors in template definitions. Suppress at definition time
++// so the pragma is inherited by all templates parsed from this precompile.
++#pragma GCC diagnostic ignored "-Wtemplate-body"
++#endif
++
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <limits.h>
+@@ -41,6 +50,7 @@
+ #include <limits>
+ #include <list>
+ #include <map>
++#include <memory>
+ #include <numeric>
+ #include <ostream>
+ #include <queue>
+
+diff --git a/src/3rdparty/chromium/extensions/browser/api/socket/socket_api.cc b/src/3rdparty/chromium/extensions/browser/api/socket/socket_api.cc
+index 83881056c2..ec56051604 100644
+--- a/src/3rdparty/chromium/extensions/browser/api/socket/socket_api.cc
++++ b/src/3rdparty/chromium/extensions/browser/api/socket/socket_api.cc
+@@ -40,6 +40,10 @@
+ #include "services/network/public/mojom/network_context.mojom.h"
+ #include "services/network/public/mojom/network_service.mojom.h"
+ 
++#if defined(__MINGW32__) && defined(interface)
++#undef interface
++#endif
++
+ #if BUILDFLAG(IS_CHROMEOS)
+ #include "extensions/browser/api/socket/app_firewall_hole_manager.h"
+ #endif  // BUILDFLAG(IS_CHROMEOS)
+diff --git a/src/3rdparty/chromium/extensions/browser/api/system_network/system_network_api.cc b/src/3rdparty/chromium/extensions/browser/api/system_network/system_network_api.cc
+index 9c6232f5b1..28f3a8556a 100644
+--- a/src/3rdparty/chromium/extensions/browser/api/system_network/system_network_api.cc
++++ b/src/3rdparty/chromium/extensions/browser/api/system_network/system_network_api.cc
+@@ -10,6 +10,10 @@
+ #include "extensions/common/api/system_network.h"
+ #include "services/network/public/mojom/network_service.mojom.h"
+ 
++#if defined(__MINGW32__) && defined(interface)
++#undef interface
++#endif
++
+ namespace {
+ 
+ const char kNetworkListError[] = "Network lookup failed or unsupported";
+diff --git a/src/3rdparty/chromium/extensions/browser/api/usb/usb_api.cc b/src/3rdparty/chromium/extensions/browser/api/usb/usb_api.cc
+index 01c7242b9d..b9f357e3a5 100644
+--- a/src/3rdparty/chromium/extensions/browser/api/usb/usb_api.cc
++++ b/src/3rdparty/chromium/extensions/browser/api/usb/usb_api.cc
+@@ -30,6 +30,10 @@
+ #include "services/device/public/mojom/usb_device.mojom.h"
+ #include "services/device/public/mojom/usb_enumeration_options.mojom.h"
+ 
++#if defined(__MINGW32__) && defined(interface)
++#undef interface
++#endif
++
+ namespace usb = extensions::api::usb;
+ namespace BulkTransfer = usb::BulkTransfer;
+ namespace ClaimInterface = usb::ClaimInterface;
+diff --git a/src/3rdparty/chromium/extensions/browser/api/usb/usb_device_manager.cc b/src/3rdparty/chromium/extensions/browser/api/usb/usb_device_manager.cc
+index 461ba47191..dcef7de41f 100644
+--- a/src/3rdparty/chromium/extensions/browser/api/usb/usb_device_manager.cc
++++ b/src/3rdparty/chromium/extensions/browser/api/usb/usb_device_manager.cc
+@@ -27,6 +27,10 @@
+ #include "extensions/common/permissions/usb_device_permission.h"
+ #include "mojo/public/cpp/bindings/pending_remote.h"
+ 
++#if defined(__MINGW32__) && defined(interface)
++#undef interface
++#endif
++
+ namespace usb = extensions::api::usb;
+ 
+ using content::BrowserThread;
+diff --git a/src/3rdparty/chromium/extensions/common/permissions/usb_device_permission.cc b/src/3rdparty/chromium/extensions/common/permissions/usb_device_permission.cc
+index 9b249ad707..4e16d627b9 100644
+--- a/src/3rdparty/chromium/extensions/common/permissions/usb_device_permission.cc
++++ b/src/3rdparty/chromium/extensions/common/permissions/usb_device_permission.cc
+@@ -20,6 +20,10 @@
+ #include "services/device/public/cpp/usb/usb_ids.h"
+ #include "ui/base/l10n/l10n_util.h"
+ 
++#if defined(__MINGW32__) && defined(interface)
++#undef interface
++#endif
++
+ namespace extensions {
+ 
+ namespace {

@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/net/BUILD.gn b/src/3rdparty/chromium/net/BUILD.gn
-index ae1600a..a4de257 100644
+index ae1600aa82..a4de257428 100644
 --- a/src/3rdparty/chromium/net/BUILD.gn
 +++ b/src/3rdparty/chromium/net/BUILD.gn
 @@ -1420,6 +1420,14 @@ jumbo_component("net") {
@@ -63,7 +63,7 @@ index ae1600a..a4de257 100644
        sources += [ "cert/internal/path_builder_trust_store_win_unittest.cc" ]
        libs += [ "crypt32.lib" ]
 diff --git a/src/3rdparty/chromium/net/base/network_change_notifier.cc b/src/3rdparty/chromium/net/base/network_change_notifier.cc
-index 4d0bbdd..ba8cdf4 100644
+index 4d0bbdd288..ba8cdf4486 100644
 --- a/src/3rdparty/chromium/net/base/network_change_notifier.cc
 +++ b/src/3rdparty/chromium/net/base/network_change_notifier.cc
 @@ -302,7 +302,7 @@ std::unique_ptr<NetworkChangeNotifier> NetworkChangeNotifier::CreateIfNeeded(
@@ -76,7 +76,7 @@ index 4d0bbdd..ba8cdf4 100644
        std::make_unique<NetworkChangeNotifierWin>();
    network_change_notifier->WatchForAddressChange();
 diff --git a/src/3rdparty/chromium/net/dns/host_resolver_system_task.cc b/src/3rdparty/chromium/net/dns/host_resolver_system_task.cc
-index 5c79b0a..20bd084 100644
+index 5c79b0a84a..20bd084375 100644
 --- a/src/3rdparty/chromium/net/dns/host_resolver_system_task.cc
 +++ b/src/3rdparty/chromium/net/dns/host_resolver_system_task.cc
 @@ -542,13 +542,13 @@ int SystemHostResolverCall(const std::string& host,
@@ -95,8 +95,28 @@ index 5c79b0a..20bd084 100644
  
    // Restrict result set to only this socket type to avoid duplicates.
    hints.ai_socktype = SOCK_STREAM;
+diff --git a/src/3rdparty/chromium/net/dns/mdns_client_impl.cc b/src/3rdparty/chromium/net/dns/mdns_client_impl.cc
+index 8bff7d7417..676cd95f4b 100644
+--- a/src/3rdparty/chromium/net/dns/mdns_client_impl.cc
++++ b/src/3rdparty/chromium/net/dns/mdns_client_impl.cc
+@@ -85,11 +85,11 @@ void RecordQueryMetric(mdnsQueryType query_type, std::string_view host) {
+ void MDnsSocketFactoryImpl::CreateSockets(
+     std::vector<std::unique_ptr<DatagramServerSocket>>* sockets) {
+   InterfaceIndexFamilyList interfaces(GetMDnsInterfacesToBind());
+-  for (const auto& interface : interfaces) {
+-    DCHECK(interface.second == ADDRESS_FAMILY_IPV4 ||
+-           interface.second == ADDRESS_FAMILY_IPV6);
++  for (const auto& inter : interfaces) {
++    DCHECK(inter.second == ADDRESS_FAMILY_IPV4 ||
++           inter.second == ADDRESS_FAMILY_IPV6);
+     std::unique_ptr<DatagramServerSocket> socket(
+-        CreateAndBindMDnsSocket(interface.second, interface.first, net_log_));
++        CreateAndBindMDnsSocket(inter.second, inter.first, net_log_));
+     if (socket)
+       sockets->push_back(std::move(socket));
+   }
 diff --git a/src/3rdparty/chromium/net/http/http_auth_sspi_win.h b/src/3rdparty/chromium/net/http/http_auth_sspi_win.h
-index b46a627..6b02e63 100644
+index b46a62789e..6b02e63505 100644
 --- a/src/3rdparty/chromium/net/http/http_auth_sspi_win.h
 +++ b/src/3rdparty/chromium/net/http/http_auth_sspi_win.h
 @@ -14,7 +14,9 @@
@@ -110,7 +130,7 @@ index b46a627..6b02e63 100644
  
  #include <string>
 diff --git a/src/3rdparty/chromium/net/quic/quic_chromium_client_stream.cc b/src/3rdparty/chromium/net/quic/quic_chromium_client_stream.cc
-index 9f5fa0b..0ea851a 100644
+index 9f5fa0bb2f..0ea851a19d 100644
 --- a/src/3rdparty/chromium/net/quic/quic_chromium_client_stream.cc
 +++ b/src/3rdparty/chromium/net/quic/quic_chromium_client_stream.cc
 @@ -317,7 +317,7 @@ int QuicChromiumClientStream::Handle::WriteConnectUdpPayload(
@@ -123,7 +143,7 @@ index 9f5fa0b..0ea851a 100644
    // Attempt to send the HTTP payload as a datagram over the stream.
    quic::MessageStatus message_status = stream_->SendHttp3Datagram(http_payload);
 diff --git a/src/3rdparty/chromium/net/socket/tcp_socket_win.cc b/src/3rdparty/chromium/net/socket/tcp_socket_win.cc
-index 79505e9..9402ab1 100644
+index 79505e93d2..9402ab1616 100644
 --- a/src/3rdparty/chromium/net/socket/tcp_socket_win.cc
 +++ b/src/3rdparty/chromium/net/socket/tcp_socket_win.cc
 @@ -968,6 +968,7 @@ int TCPSocketWin::DoConnect() {
@@ -143,7 +163,7 @@ index 79505e9..9402ab1 100644
    if (!connect(socket_, storage.addr(), storage.addr_len)) {
      // Connected without waiting!
 diff --git a/src/3rdparty/chromium/net/socket/udp_socket_win.cc b/src/3rdparty/chromium/net/socket/udp_socket_win.cc
-index 8e6f516..ea43cc8 100644
+index 8e6f5167cf..ea43cc8918 100644
 --- a/src/3rdparty/chromium/net/socket/udp_socket_win.cc
 +++ b/src/3rdparty/chromium/net/socket/udp_socket_win.cc
 @@ -501,12 +501,14 @@ int UDPSocketWin::InternalConnect(const IPEndPoint& address) {
@@ -194,7 +214,7 @@ index 8e6f516..ea43cc8 100644
    return OK;
  }
 diff --git a/src/3rdparty/chromium/net/ssl/client_cert_store_win.cc b/src/3rdparty/chromium/net/ssl/client_cert_store_win.cc
-index a1d1925..3179092 100644
+index a1d19255b2..3179092a96 100644
 --- a/src/3rdparty/chromium/net/ssl/client_cert_store_win.cc
 +++ b/src/3rdparty/chromium/net/ssl/client_cert_store_win.cc
 @@ -16,7 +16,9 @@
@@ -208,7 +228,7 @@ index a1d1925..3179092 100644
  
  #include "base/functional/bind.h"
 diff --git a/src/3rdparty/chromium/net/ssl/ssl_platform_key_win.cc b/src/3rdparty/chromium/net/ssl/ssl_platform_key_win.cc
-index 8f0919f..a0b3445 100644
+index 8f0919fa17..a0b34453d1 100644
 --- a/src/3rdparty/chromium/net/ssl/ssl_platform_key_win.cc
 +++ b/src/3rdparty/chromium/net/ssl/ssl_platform_key_win.cc
 @@ -258,6 +258,7 @@ class SSLPlatformKeyCNG : public ThreadedSSLPrivateKey::Delegate {
@@ -227,8 +247,53 @@ index 8f0919f..a0b3445 100644
      if (prefer_sha1_) {
        std::vector<uint16_t> ret = {
            SSL_SIGN_RSA_PKCS1_SHA1,
+diff --git a/src/3rdparty/chromium/net/third_party/quiche/src/quiche/quic/core/http/web_transport_http3.cc b/src/3rdparty/chromium/net/third_party/quiche/src/quiche/quic/core/http/web_transport_http3.cc
+index d0687ee7b1..f2081d1349 100644
+--- a/src/3rdparty/chromium/net/third_party/quiche/src/quiche/quic/core/http/web_transport_http3.cc
++++ b/src/3rdparty/chromium/net/third_party/quiche/src/quiche/quic/core/http/web_transport_http3.cc
+@@ -218,7 +218,7 @@ WebTransportStream* WebTransportHttp3::AcceptIncomingUnidirectionalStream() {
+       continue;
+     }
+     return static_cast<WebTransportHttp3UnidirectionalStream*>(stream)
+-        ->interface();
++        ->myinterface();
+   }
+   return nullptr;
+ }
+@@ -247,7 +247,7 @@ WebTransportStream* WebTransportHttp3::OpenOutgoingUnidirectionalStream() {
+     // If stream cannot be created due to flow control, return nullptr.
+     return nullptr;
+   }
+-  return stream->interface();
++  return stream->myinterface();
+ }
+ 
+ webtransport::Stream* WebTransportHttp3::GetStreamById(
+@@ -262,7 +262,7 @@ webtransport::Stream* WebTransportHttp3::GetStreamById(
+     return static_cast<QuicSpdyStream*>(stream)->web_transport_stream();
+   } else {
+     return static_cast<WebTransportHttp3UnidirectionalStream*>(stream)
+-        ->interface();
++        ->myinterface();
+   }
+ }
+
+diff --git a/src/3rdparty/chromium/net/third_party/quiche/src/quiche/quic/core/http/web_transport_http3.h b/src/3rdparty/chromium/net/third_party/quiche/src/quiche/quic/core/http/web_transport_http3.h
+index b6d51101f9..526b181121 100644
+--- a/src/3rdparty/chromium/net/third_party/quiche/src/quiche/quic/core/http/web_transport_http3.h
++++ b/src/3rdparty/chromium/net/third_party/quiche/src/quiche/quic/core/http/web_transport_http3.h
+@@ -168,7 +168,7 @@ class QUICHE_EXPORT WebTransportHttp3UnidirectionalStream : public QuicStream {
+   bool OnStopSending(QuicResetStreamError error) override;
+   void OnWriteSideInDataRecvdState() override;
+ 
+-  WebTransportStream* interface() { return &adapter_; }
++  WebTransportStream* myinterface() { return &adapter_; }
+   void SetUnblocked() { sequencer()->SetUnblocked(); }
+ 
+  private:
+
 diff --git a/src/3rdparty/chromium/net/third_party/quiche/src/quiche/http2/adapter/window_manager.h b/src/3rdparty/chromium/net/third_party/quiche/src/quiche/http2/adapter/window_manager.h
-index ffe1a7f..4666f32 100644
+index ffe1a7f623..4666f32f99 100644
 --- a/src/3rdparty/chromium/net/third_party/quiche/src/quiche/http2/adapter/window_manager.h
 +++ b/src/3rdparty/chromium/net/third_party/quiche/src/quiche/http2/adapter/window_manager.h
 @@ -4,6 +4,7 @@

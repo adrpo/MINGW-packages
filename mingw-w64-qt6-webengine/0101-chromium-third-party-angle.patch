@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/third_party/angle/BUILD.gn b/src/3rdparty/chromium/third_party/angle/BUILD.gn
-index 34b9fed..de41235 100644
+index 34b9fedebf..acd9851c20 100644
 --- a/src/3rdparty/chromium/third_party/angle/BUILD.gn
 +++ b/src/3rdparty/chromium/third_party/angle/BUILD.gn
 @@ -327,7 +327,7 @@ config("extra_warnings") {
@@ -68,7 +68,7 @@ index 34b9fed..de41235 100644
    if (angle_enable_d3d11) {
 -    libs += [ "dxguid.lib" ]
 +    if (is_mingw) {
-+      libs += [ "dxguid" ]
++      libs += [ "dxguid", "dxcore" ]
 +    } else {
 +      libs += [ "dxguid.lib" ]
 +    }
@@ -92,7 +92,7 @@ index 34b9fed..de41235 100644
    public_configs = [ ":angle_static_config" ]
    deps = [ ":libGLESv2_static" ]
 diff --git a/src/3rdparty/chromium/third_party/angle/src/libANGLE/MemoryProgramCache.cpp b/src/3rdparty/chromium/third_party/angle/src/libANGLE/MemoryProgramCache.cpp
-index ec2047d..8567d86 100644
+index ec2047d4a8..8567d86673 100644
 --- a/src/3rdparty/chromium/third_party/angle/src/libANGLE/MemoryProgramCache.cpp
 +++ b/src/3rdparty/chromium/third_party/angle/src/libANGLE/MemoryProgramCache.cpp
 @@ -8,7 +8,9 @@
@@ -106,7 +106,7 @@ index ec2047d..8567d86 100644
  
  #include "libANGLE/MemoryProgramCache.h"
 diff --git a/src/3rdparty/chromium/third_party/angle/src/libANGLE/angletypes.cpp b/src/3rdparty/chromium/third_party/angle/src/libANGLE/angletypes.cpp
-index 21cc33e..2713f61 100644
+index 21cc33ef1e..2713f61ea9 100644
 --- a/src/3rdparty/chromium/third_party/angle/src/libANGLE/angletypes.cpp
 +++ b/src/3rdparty/chromium/third_party/angle/src/libANGLE/angletypes.cpp
 @@ -14,7 +14,9 @@
@@ -120,7 +120,7 @@ index 21cc33e..2713f61 100644
  
  namespace gl
 diff --git a/src/3rdparty/chromium/third_party/angle/src/libANGLE/renderer/d3d/BUILD.gn b/src/3rdparty/chromium/third_party/angle/src/libANGLE/renderer/d3d/BUILD.gn
-index 55227c3..5da1f87 100644
+index 55227c34b3..39165f77bb 100644
 --- a/src/3rdparty/chromium/third_party/angle/src/libANGLE/renderer/d3d/BUILD.gn
 +++ b/src/3rdparty/chromium/third_party/angle/src/libANGLE/renderer/d3d/BUILD.gn
 @@ -27,15 +27,21 @@ angle_source_set("angle_d3d_shared") {
@@ -156,7 +156,7 @@ index 55227c3..5da1f87 100644
  
 -    libs = [ "dxguid.lib" ]
 +    if (is_mingw) {
-+      libs = [ "dxguid" ]
++      libs = [ "dxguid", "dxcore" ]
 +    } else {
 +      libs = [ "dxguid.lib" ]
 +    }
@@ -164,7 +164,7 @@ index 55227c3..5da1f87 100644
      public_deps = [ ":angle_d3d_shared" ]
      public_configs = [ ":angle_d3d11_backend_config" ]
 diff --git a/src/3rdparty/chromium/third_party/angle/util/capture/traces_export.h b/src/3rdparty/chromium/third_party/angle/util/capture/traces_export.h
-index 95a888c..048508d 100644
+index 95a888cac9..048508d434 100644
 --- a/src/3rdparty/chromium/third_party/angle/util/capture/traces_export.h
 +++ b/src/3rdparty/chromium/third_party/angle/util/capture/traces_export.h
 @@ -13,7 +13,7 @@
@@ -195,7 +195,7 @@ index 95a888c..048508d 100644
  #            define ANGLE_REPLAY_EXPORT __declspec(dllexport)
  #        else
 diff --git a/src/3rdparty/chromium/third_party/angle/util/util_export.h b/src/3rdparty/chromium/third_party/angle/util/util_export.h
-index 36fb6b7..8cd58b4 100644
+index 36fb6b76e1..8cd58b45ec 100644
 --- a/src/3rdparty/chromium/third_party/angle/util/util_export.h
 +++ b/src/3rdparty/chromium/third_party/angle/util/util_export.h
 @@ -12,7 +12,7 @@
@@ -207,3 +207,4 @@ index 36fb6b7..8cd58b4 100644
  #        if defined(LIBANGLE_UTIL_IMPLEMENTATION)
  #            define ANGLE_UTIL_EXPORT __declspec(dllexport)
  #        else
+ 

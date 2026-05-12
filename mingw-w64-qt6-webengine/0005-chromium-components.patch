@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/components/download/internal/common/base_file.cc b/src/3rdparty/chromium/components/download/internal/common/base_file.cc
-index 23323c5..9c6d167 100644
+index 23323c5a93..9c6d167456 100644
 --- a/src/3rdparty/chromium/components/download/internal/common/base_file.cc
 +++ b/src/3rdparty/chromium/components/download/internal/common/base_file.cc
 @@ -275,7 +275,11 @@ DownloadInterruptReason BaseFile::Rename(const base::FilePath& new_path) {
@@ -15,7 +15,7 @@ index 23323c5..9c6d167 100644
  
    CONDITIONAL_TRACE(END0("download", "DownloadFileRename"));
 diff --git a/src/3rdparty/chromium/components/download/internal/common/base_file_win.cc b/src/3rdparty/chromium/components/download/internal/common/base_file_win.cc
-index 2892a83..c1b4d0f 100644
+index 2892a8301c..c1b4d0fc67 100644
 --- a/src/3rdparty/chromium/components/download/internal/common/base_file_win.cc
 +++ b/src/3rdparty/chromium/components/download/internal/common/base_file_win.cc
 @@ -11,7 +11,9 @@
@@ -67,7 +67,7 @@ index 2892a83..c1b4d0f 100644
  
  }  // namespace download
 diff --git a/src/3rdparty/chromium/components/history/core/browser/web_history_service.cc b/src/3rdparty/chromium/components/history/core/browser/web_history_service.cc
-index 17a22c9..faea3b3 100644
+index 17a22c9469..faea3b3269 100644
 --- a/src/3rdparty/chromium/components/history/core/browser/web_history_service.cc
 +++ b/src/3rdparty/chromium/components/history/core/browser/web_history_service.cc
 @@ -61,11 +61,12 @@ const char kHistoryAudioHistoryChangeUrl[] =
@@ -86,7 +86,7 @@ index 17a22c9..faea3b3 100644
  // The maximum number of retries for the SimpleURLLoader requests.
  const size_t kMaxRetries = 1;
 diff --git a/src/3rdparty/chromium/components/metrics/BUILD.gn b/src/3rdparty/chromium/components/metrics/BUILD.gn
-index 00a94a8..8987095 100644
+index 00a94a806c..8987095e1a 100644
 --- a/src/3rdparty/chromium/components/metrics/BUILD.gn
 +++ b/src/3rdparty/chromium/components/metrics/BUILD.gn
 @@ -320,7 +320,11 @@ if (!is_cronet_build || is_ios) {
@@ -103,7 +103,7 @@ index 00a94a8..8987095 100644
        sources += [ "machine_id_provider_nonwin.cc" ]
      }
 diff --git a/src/3rdparty/chromium/components/metrics/metrics_state_manager.cc b/src/3rdparty/chromium/components/metrics/metrics_state_manager.cc
-index 125faac..0540396 100644
+index 125faaccba..05403968f3 100644
 --- a/src/3rdparty/chromium/components/metrics/metrics_state_manager.cc
 +++ b/src/3rdparty/chromium/components/metrics/metrics_state_manager.cc
 @@ -89,12 +89,14 @@ std::unique_ptr<metrics::ClientInfo> NoOpLoadClientInfoBackup() {
@@ -122,7 +122,7 @@ index 125faac..0540396 100644
  // Returns a log normal distribution based on the feature params of
  // |kNonUniformityValidationFeature|.
 diff --git a/src/3rdparty/chromium/components/os_crypt/sync/BUILD.gn b/src/3rdparty/chromium/components/os_crypt/sync/BUILD.gn
-index ff1e356..7f1bb84 100644
+index ff1e356ff6..7f1bb84b8f 100644
 --- a/src/3rdparty/chromium/components/os_crypt/sync/BUILD.gn
 +++ b/src/3rdparty/chromium/components/os_crypt/sync/BUILD.gn
 @@ -41,7 +41,11 @@ component("sync") {
@@ -138,8 +138,61 @@ index ff1e356..7f1bb84 100644
    } else if (is_linux && !is_castos) {
      sources += [
        "key_storage_config_linux.cc",
+diff --git a/src/3rdparty/chromium/components/os_crypt/async/browser/BUILD.gn b/src/3rdparty/chromium/components/os_crypt/async/browser/BUILD.gn
+index e7b19d750e..8caa8cfa84 100644
+--- a/src/3rdparty/chromium/components/os_crypt/async/browser/BUILD.gn
++++ b/src/3rdparty/chromium/components/os_crypt/async/browser/BUILD.gn
+@@ -57,7 +57,13 @@ if (is_win) {
+       "//components/prefs",
+     ]
+ 
+-    libs = [ "crypt32.lib" ]
++
++    if (is_mingw) {
++      libs = [ "crypt32" ]
++    }
++    if (is_msvc) {
++      libs = [ "crypt32.lib" ]
++    }
+   }
+ }
+
+diff --git a/src/3rdparty/chromium/components/os_crypt/async/common/BUILD.gn b/src/3rdparty/chromium/components/os_crypt/async/common/BUILD.gn
+index c66446ead7..79c8b1b528 100644
+--- a/src/3rdparty/chromium/components/os_crypt/async/common/BUILD.gn
++++ b/src/3rdparty/chromium/components/os_crypt/async/common/BUILD.gn
+@@ -95,9 +95,12 @@ source_set("test_support") {
+ # allows the dependency on crypt32.lib to be forwarded to both :common and
+ # :common_mojom which might be in different modules in a component-build.
+ source_set("crypto_lib") {
+-  if (is_win) {
+-    libs = [ "crypt32.lib" ]
+-  }
++    if (is_mingw) {
++      libs = [ "crypt32" ]
++    }
++    if (is_msvc) {
++      libs = [ "crypt32.lib" ]
++    }
+ }
+ 
+ source_set("unit_tests") {
+@@ -117,7 +120,10 @@ source_set("unit_tests") {
+     "//testing/gtest",
+   ]
+ 
+-  if (is_win) {
+-    libs = [ "crypt32.lib" ]
+-  }
++    if (is_mingw) {
++      libs = [ "crypt32" ]
++    }
++    if (is_msvc) {
++      libs = [ "crypt32.lib" ]
++    }
+ }
 diff --git a/src/3rdparty/chromium/components/policy/core/common/BUILD.gn b/src/3rdparty/chromium/components/policy/core/common/BUILD.gn
-index 0aabcd7..53dd743 100644
+index 0aabcd7bcb..53dd743c19 100644
 --- a/src/3rdparty/chromium/components/policy/core/common/BUILD.gn
 +++ b/src/3rdparty/chromium/components/policy/core/common/BUILD.gn
 @@ -271,13 +271,23 @@ jumbo_source_set("internal") {
@@ -174,7 +227,7 @@ index 0aabcd7..53dd743 100644
  
    if (is_win || is_mac || is_linux) {
 diff --git a/src/3rdparty/chromium/components/signin/public/identity_manager/identity_manager_builder.cc b/src/3rdparty/chromium/components/signin/public/identity_manager/identity_manager_builder.cc
-index 31dd246..38a114b 100644
+index 31dd246ca5..38a114bf06 100644
 --- a/src/3rdparty/chromium/components/signin/public/identity_manager/identity_manager_builder.cc
 +++ b/src/3rdparty/chromium/components/signin/public/identity_manager/identity_manager_builder.cc
 @@ -77,6 +77,7 @@ std::unique_ptr<AccountsMutator> BuildAccountsMutator(
@@ -194,7 +247,7 @@ index 31dd246..38a114b 100644
  }  // anonymous namespace
  
 diff --git a/src/3rdparty/chromium/components/storage_monitor/portable_device_watcher_win.cc b/src/3rdparty/chromium/components/storage_monitor/portable_device_watcher_win.cc
-index 27373c7..8583db9 100644
+index 27373c7b9b..8583db9479 100644
 --- a/src/3rdparty/chromium/components/storage_monitor/portable_device_watcher_win.cc
 +++ b/src/3rdparty/chromium/components/storage_monitor/portable_device_watcher_win.cc
 @@ -11,6 +11,7 @@
@@ -206,7 +259,7 @@ index 27373c7..8583db9 100644
  #include <wrl/client.h>
  
 diff --git a/src/3rdparty/chromium/components/system_media_controls/BUILD.gn b/src/3rdparty/chromium/components/system_media_controls/BUILD.gn
-index b5d84cc..b0f242d 100644
+index b5d84cc91b..b0f242d77d 100644
 --- a/src/3rdparty/chromium/components/system_media_controls/BUILD.gn
 +++ b/src/3rdparty/chromium/components/system_media_controls/BUILD.gn
 @@ -38,7 +38,7 @@ component("system_media_controls") {
@@ -219,7 +272,7 @@ index b5d84cc..b0f242d 100644
        "win/system_media_controls_win.cc",
        "win/system_media_controls_win.h",
 diff --git a/src/3rdparty/chromium/components/variations/seed_response.h b/src/3rdparty/chromium/components/variations/seed_response.h
-index 6f7b586..7a53f65 100644
+index 6f7b586715..7a53f6520e 100644
 --- a/src/3rdparty/chromium/components/variations/seed_response.h
 +++ b/src/3rdparty/chromium/components/variations/seed_response.h
 @@ -5,6 +5,7 @@
@@ -231,7 +284,7 @@ index 6f7b586..7a53f65 100644
  
  #include "base/component_export.h"
 diff --git a/src/3rdparty/chromium/components/viz/service/gl/gpu_service_impl.cc b/src/3rdparty/chromium/components/viz/service/gl/gpu_service_impl.cc
-index 7d85b1f..64e3982 100644
+index 7d85b1f8e7..64e398249b 100644
 --- a/src/3rdparty/chromium/components/viz/service/gl/gpu_service_impl.cc
 +++ b/src/3rdparty/chromium/components/viz/service/gl/gpu_service_impl.cc
 @@ -527,7 +527,7 @@ void GpuServiceImpl::UpdateGPUInfo() {
@@ -243,8 +296,57 @@ index 7d85b1f..64e3982 100644
    gpu_info_.shared_image_d3d =
        gpu::D3DImageBackingFactory::IsD3DSharedImageSupported(gpu_preferences_);
  #endif
+diff --git a/src/3rdparty/chromium/components/viz/service/BUILD.gn b/src/3rdparty/chromium/components/viz/service/BUILD.gn
+index 8dd1f4339a..475c970520 100644
+--- a/src/3rdparty/chromium/components/viz/service/BUILD.gn
++++ b/src/3rdparty/chromium/components/viz/service/BUILD.gn
+@@ -501,17 +501,33 @@ viz_component("service") {
+       "display_embedder/skia_output_device_dcomp.cc",
+     ]
+ 
+-    libs = [
+-      "d3d11.lib",
+-      "dxgi.lib",
+-      "dcomp.lib",
+-    ]
++    if (is_msvc)
++    {
++      libs = [
++        "d3d11.lib",
++        "dxgi.lib",
++        "dcomp.lib",
++      ]
++      ldflags = [
++        "/DELAYLOAD:d3d11.dll",
++        "/DELAYLOAD:dxgi.dll",
++        "/DELAYLOAD:dcomp.dll",
++      ]
++    }
++    if (is_mingw)
++    {
++      libs = [
++        "d3d11",
++        "dxgi",
++        "dcomp",
++      ]
++      ldflags = [
++        "/DELAYLOAD:d3d11.dll",
++        "/DELAYLOAD:dxgi.dll",
++        "/DELAYLOAD:dcomp.dll",
++      ]
++    }
+ 
+-    ldflags = [
+-      "/DELAYLOAD:d3d11.dll",
+-      "/DELAYLOAD:dxgi.dll",
+-      "/DELAYLOAD:dcomp.dll",
+-    ]
+ 
+     # SkiaOutputDeviceBufferQueue doesn't support Windows.
+     sources -= [
+
 diff --git a/src/3rdparty/chromium/components/wifi/BUILD.gn b/src/3rdparty/chromium/components/wifi/BUILD.gn
-index 61361ec..2b0c4ac 100644
+index 61361ec6f7..2b0c4ac359 100644
 --- a/src/3rdparty/chromium/components/wifi/BUILD.gn
 +++ b/src/3rdparty/chromium/components/wifi/BUILD.gn
 @@ -23,7 +23,7 @@ jumbo_component("wifi") {
@@ -257,7 +359,7 @@ index 61361ec..2b0c4ac 100644
        "//third_party/libxml:xml_reader",  # Safe, data come from system.
        "//third_party/libxml:xml_writer",
 diff --git a/src/3rdparty/chromium/components/winhttp/BUILD.gn b/src/3rdparty/chromium/components/winhttp/BUILD.gn
-index 79cd4d7..b94ae32 100644
+index 79cd4d7843..b94ae323af 100644
 --- a/src/3rdparty/chromium/components/winhttp/BUILD.gn
 +++ b/src/3rdparty/chromium/components/winhttp/BUILD.gn
 @@ -30,7 +30,7 @@ static_library("winhttp") {

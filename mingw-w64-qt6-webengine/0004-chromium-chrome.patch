@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/chrome/BUILD.gn b/src/3rdparty/chromium/chrome/BUILD.gn
-index e57b3b3..f0c29de 100644
+index e57b3b3410..dff25045b9 100644
 --- a/src/3rdparty/chromium/chrome/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/BUILD.gn
 @@ -234,6 +234,12 @@ if (!is_android && !is_mac) {
@@ -31,7 +31,7 @@ index e57b3b3..f0c29de 100644
  } else if (is_mac) {
    chrome_helper_name = chrome_product_full_name + " Helper"
 diff --git a/src/3rdparty/chromium/chrome/browser/BUILD.gn b/src/3rdparty/chromium/chrome/browser/BUILD.gn
-index a9eabc2..84cfb2b 100644
+index a9eabc2716..84cfb2b605 100644
 --- a/src/3rdparty/chromium/chrome/browser/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/browser/BUILD.gn
 @@ -86,16 +86,18 @@ if (is_win) {
@@ -73,7 +73,7 @@ index a9eabc2..84cfb2b 100644
        "enterprise/platform_auth/platform_auth_navigation_throttle.cc",
        "enterprise/platform_auth/platform_auth_navigation_throttle.h",
 diff --git a/src/3rdparty/chromium/chrome/browser/feedback/BUILD.gn b/src/3rdparty/chromium/chrome/browser/feedback/BUILD.gn
-index c9653d6..7b6bc73 100644
+index c9653d6186..7b6bc73342 100644
 --- a/src/3rdparty/chromium/chrome/browser/feedback/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/browser/feedback/BUILD.gn
 @@ -150,7 +150,7 @@ source_set("feedback_impl") {
@@ -86,7 +86,7 @@ index c9653d6..7b6bc73 100644
    }
  }
 diff --git a/src/3rdparty/chromium/chrome/browser/media/router/discovery/BUILD.gn b/src/3rdparty/chromium/chrome/browser/media/router/discovery/BUILD.gn
-index 51c2766..6edd2e8 100644
+index 51c27662f2..6edd2e8d16 100644
 --- a/src/3rdparty/chromium/chrome/browser/media/router/discovery/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/browser/media/router/discovery/BUILD.gn
 @@ -104,7 +104,11 @@ static_library("discovery") {
@@ -103,7 +103,7 @@ index 51c2766..6edd2e8 100644
  }
  
 diff --git a/src/3rdparty/chromium/chrome/browser/os_crypt/BUILD.gn b/src/3rdparty/chromium/chrome/browser/os_crypt/BUILD.gn
-index a1b5fbf..70a47f8 100644
+index a1b5fbf299..70a47f836f 100644
 --- a/src/3rdparty/chromium/chrome/browser/os_crypt/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/browser/os_crypt/BUILD.gn
 @@ -77,6 +77,9 @@ source_set("test_support") {
@@ -117,7 +117,7 @@ index a1b5fbf..70a47f8 100644
  
  # This binary is launched by the browser tests and makes calls to the app-bound
 diff --git a/src/3rdparty/chromium/chrome/browser/updater/BUILD.gn b/src/3rdparty/chromium/chrome/browser/updater/BUILD.gn
-index 0ef355d..7e48698 100644
+index 0ef355da48..7e48698697 100644
 --- a/src/3rdparty/chromium/chrome/browser/updater/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/browser/updater/BUILD.gn
 @@ -5,7 +5,7 @@
@@ -139,7 +139,7 @@ index 0ef355d..7e48698 100644
        deps += [
          ":browser_updater_client",
 diff --git a/src/3rdparty/chromium/chrome/browser/win/conflicts/BUILD.gn b/src/3rdparty/chromium/chrome/browser/win/conflicts/BUILD.gn
-index daf7e5b..5dd143f 100644
+index daf7e5bf70..5dd143fcf1 100644
 --- a/src/3rdparty/chromium/chrome/browser/win/conflicts/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/browser/win/conflicts/BUILD.gn
 @@ -30,7 +30,7 @@ source_set("module_info") {
@@ -152,7 +152,7 @@ index daf7e5b..5dd143f 100644
    if (safe_browsing_mode == 1) {
      deps += [
 diff --git a/src/3rdparty/chromium/chrome/chrome_elf/BUILD.gn b/src/3rdparty/chromium/chrome/chrome_elf/BUILD.gn
-index a6072f9..41843f8 100644
+index a6072f97ed..41843f803c 100644
 --- a/src/3rdparty/chromium/chrome/chrome_elf/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/chrome_elf/BUILD.gn
 @@ -79,7 +79,7 @@ shared_library("chrome_elf") {
@@ -175,8 +175,50 @@ index a6072f9..41843f8 100644
    ]
  }
  
+diff --git a/src/3rdparty/chromium/chrome/credential_provider/gaiacp/BUILD.gn b/src/3rdparty/chromium/chrome/credential_provider/gaiacp/BUILD.gn
+index 9959b1369d..141a6d3c80 100644
+--- a/src/3rdparty/chromium/chrome/credential_provider/gaiacp/BUILD.gn
++++ b/src/3rdparty/chromium/chrome/credential_provider/gaiacp/BUILD.gn
+@@ -232,14 +232,29 @@ config("gaiacp_config") {
+     # Needed to build COM objects that will be hosted in a DLL.
+     "_WINDLL",
+   ]
+-  libs = [
+-    "advapi32.lib",  # For LookupAccountSid()
+-    "credui.lib",  # For CredPackAuthenticationBufferW()
+-    "crypt32.lib",  # For CryptProtectData()
+-    "netapi32.lib",  # For NetUserXXX()
+-    "userenv.lib",  # For GetUserProfileDirectoryW()
+-    "winhttp.lib",  # For WinHttpXXX()
+-  ]
++
++  if (is_mingw) {
++    libs = [
++      "crypt32",
++      "dhcpcsvc",
++      "iphlpapi",
++      "ncrypt",
++      "rpcrt4",
++      "secur32",
++      "urlmon",
++      "winhttp",
++    ]
++  }
++  if (is_msvc) {
++    libs = [
++      "advapi32.lib",  # For LookupAccountSid()
++      "credui.lib",  # For CredPackAuthenticationBufferW()
++      "crypt32.lib",  # For CryptProtectData()
++      "netapi32.lib",  # For NetUserXXX()
++      "userenv.lib",  # For GetUserProfileDirectoryW()
++      "winhttp.lib",  # For WinHttpXXX()
++    ]
++  }
+ }
+ 
+ # Targets for the credential provider dll.
 diff --git a/src/3rdparty/chromium/chrome/elevation_service/BUILD.gn b/src/3rdparty/chromium/chrome/elevation_service/BUILD.gn
-index a0e3912..eef4e9e 100644
+index a0e3912b0f..eef4e9e762 100644
 --- a/src/3rdparty/chromium/chrome/elevation_service/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/elevation_service/BUILD.gn
 @@ -75,10 +75,17 @@ source_set("lib") {
@@ -202,7 +244,7 @@ index a0e3912..eef4e9e 100644
  
  source_set("service_lib") {
 diff --git a/src/3rdparty/chromium/chrome/installer/setup/BUILD.gn b/src/3rdparty/chromium/chrome/installer/setup/BUILD.gn
-index 06424d7..ee68595 100644
+index 06424d786c..ee685952ae 100644
 --- a/src/3rdparty/chromium/chrome/installer/setup/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/installer/setup/BUILD.gn
 @@ -7,7 +7,7 @@ import("//build/config/chrome_build.gni")
@@ -215,7 +257,7 @@ index 06424d7..ee68595 100644
      sources = [
        "setup.ico",
 diff --git a/src/3rdparty/chromium/chrome/installer/util/BUILD.gn b/src/3rdparty/chromium/chrome/installer/util/BUILD.gn
-index 64bcc58..b16abcc 100644
+index 64bcc581b6..b16abccf72 100644
 --- a/src/3rdparty/chromium/chrome/installer/util/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/installer/util/BUILD.gn
 @@ -7,7 +7,7 @@ import("//build/config/chrome_build.gni")
@@ -246,7 +288,7 @@ index 64bcc58..b16abcc 100644
      public = [ "update_did_run_state.h" ]
  
 diff --git a/src/3rdparty/chromium/chrome/notification_helper/BUILD.gn b/src/3rdparty/chromium/chrome/notification_helper/BUILD.gn
-index 0244dc3..fd4a85d 100644
+index 0244dc319f..fd4a85d87f 100644
 --- a/src/3rdparty/chromium/chrome/notification_helper/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/notification_helper/BUILD.gn
 @@ -8,6 +8,7 @@ import("//chrome/process_version_rc_template.gni")
@@ -280,7 +322,7 @@ index 0244dc3..fd4a85d 100644
 +  }
  }
 diff --git a/src/3rdparty/chromium/chrome/test/BUILD.gn b/src/3rdparty/chromium/chrome/test/BUILD.gn
-index fc37f91..b888f6a 100644
+index fc37f91b7f..b888f6ac3c 100644
 --- a/src/3rdparty/chromium/chrome/test/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/test/BUILD.gn
 @@ -849,7 +849,7 @@ static_library("test_support") {
@@ -338,7 +380,7 @@ index fc37f91..b888f6a 100644
          "../browser/downgrade/user_data_downgrade_browsertest.cc",
          "../browser/net/sandboxed_network_change_notifier_win_browsertest.cc",
 diff --git a/src/3rdparty/chromium/chrome/tools/convert_dict/BUILD.gn b/src/3rdparty/chromium/chrome/tools/convert_dict/BUILD.gn
-index caef30a..f70a1d7 100644
+index caef30a066..f70a1d7245 100644
 --- a/src/3rdparty/chromium/chrome/tools/convert_dict/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/tools/convert_dict/BUILD.gn
 @@ -32,6 +32,9 @@ executable("convert_dict") {
@@ -352,7 +394,7 @@ index caef30a..f70a1d7 100644
      ":lib",
      "//base",
 diff --git a/src/3rdparty/chromium/chrome/updater/BUILD.gn b/src/3rdparty/chromium/chrome/updater/BUILD.gn
-index 7781c85..67e3819 100644
+index 7781c85207..67e38198b8 100644
 --- a/src/3rdparty/chromium/chrome/updater/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/updater/BUILD.gn
 @@ -18,7 +18,7 @@ import("//testing/test.gni")
@@ -464,7 +506,7 @@ index 7781c85..67e3819 100644
        testonly = true
        data = [ "//testing/scripts/run_telemetry_as_googletest.py" ]
 diff --git a/src/3rdparty/chromium/chrome/windows_services/service_program/test_support/BUILD.gn b/src/3rdparty/chromium/chrome/windows_services/service_program/test_support/BUILD.gn
-index 5adccba..9fa0034 100644
+index 5adccbade1..9fa00343d3 100644
 --- a/src/3rdparty/chromium/chrome/windows_services/service_program/test_support/BUILD.gn
 +++ b/src/3rdparty/chromium/chrome/windows_services/service_program/test_support/BUILD.gn
 @@ -28,6 +28,9 @@ source_set("test_support") {
@@ -477,3 +519,48 @@ index 5adccba..9fa0034 100644
  }
  
  source_set("unit_tests") {
+diff --git a/src/3rdparty/chromium/chrome/browser/ui/BUILD.gn b/src/3rdparty/chromium/chrome/browser/ui/BUILD.gn
+index 866ec5ea42..96e125beb2 100644
+--- a/src/3rdparty/chromium/chrome/browser/ui/BUILD.gn
++++ b/src/3rdparty/chromium/chrome/browser/ui/BUILD.gn
+@@ -3518,7 +3518,12 @@ static_library("ui") {
+       "//ui/events:dom_keycode_converter",
+     ]
+ 
+-    libs += [ "crypt32.lib" ]
++    if (is_mingw) {
++      libs += [ "crypt32" ]
++    }
++    if (is_msvc) {
++      libs += [ "crypt32.lib" ]
++    }
+ 
+     if (is_chrome_branded) {
+       sources += [
+diff --git a/src/3rdparty/chromium/third_party/zstd/src/lib/common/portability_macros.h b/src/3rdparty/chromium/third_party/zstd/src/lib/common/portability_macros.h
+index b52394382e..de9a0ffa21 100644
+--- a/src/3rdparty/chromium/third_party/zstd/src/lib/common/portability_macros.h
++++ b/src/3rdparty/chromium/third_party/zstd/src/lib/common/portability_macros.h
+@@ -129,7 +129,7 @@
+  */
+ #if !defined(ZSTD_DISABLE_ASM) &&                                 \
+     ZSTD_ASM_SUPPORTED &&                                         \
+-    defined(__x86_64__) &&                                        \
++    defined(__x86_64__) && !defined(__MINGW32__) &&               \
+     (DYNAMIC_BMI2 || defined(__BMI2__))
+ # define ZSTD_ENABLE_ASM_X86_64_BMI2 1
+ #else
+diff --git "a/src/3rdparty/chromium/chrome/app/chrome_version.rc.version" "b/src/3rdparty/chromium/chrome/app/chrome_version.rc.version"
+index 15f2fec0c8..e38644f0bc 100644
+--- "a/src/3rdparty/chromium/chrome/app/chrome_version.rc.version"
++++ "b/src/3rdparty/chromium/chrome/app/chrome_version.rc.version"
+@@ -2,7 +2,9 @@
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+ 
++#if defined(_MSC_VER)
+ #include <verrsrc.h>
++#endif
+ 
+ /////////////////////////////////////////////////////////////////////////////
+ //

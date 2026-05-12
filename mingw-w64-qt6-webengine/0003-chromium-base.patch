@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/base/BUILD.gn b/src/3rdparty/chromium/base/BUILD.gn
-index 57fd494..3f40725 100644
+index 57fd494402..3f40725a66 100644
 --- a/src/3rdparty/chromium/base/BUILD.gn
 +++ b/src/3rdparty/chromium/base/BUILD.gn
 @@ -108,7 +108,7 @@ if (is_fuchsia) {
@@ -110,7 +110,7 @@ index 57fd494..3f40725 100644
    }
  
 diff --git a/src/3rdparty/chromium/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/win/windows_types.h b/src/3rdparty/chromium/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/win/windows_types.h
-index 649a3b7..f17561d 100644
+index 649a3b74e5..f17561db83 100644
 --- a/src/3rdparty/chromium/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/win/windows_types.h
 +++ b/src/3rdparty/chromium/base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/win/windows_types.h
 @@ -80,12 +80,18 @@ struct PA_CHROME_SRWLOCK {
@@ -132,8 +132,88 @@ index 649a3b7..f17561d 100644
      ReleaseSRWLockExclusive(_Inout_ PSRWLOCK SRWLock);
  WINBASEAPI BOOLEAN WINAPI TryAcquireSRWLockExclusive(_Inout_ PSRWLOCK SRWLock);
  
+diff --git a/src/3rdparty/chromium/base/allocator/partition_allocator/src/partition_alloc/stack/asm/x64/push_registers_asm.cc b/src/3rdparty/chromium/base/allocator/partition_allocator/src/partition_alloc/stack/asm/x64/push_registers_asm.cc
+index 9af806f08f..e587e8794d 100644
+--- a/src/3rdparty/chromium/base/allocator/partition_allocator/src/partition_alloc/stack/asm/x64/push_registers_asm.cc
++++ b/src/3rdparty/chromium/base/allocator/partition_allocator/src/partition_alloc/stack/asm/x64/push_registers_asm.cc
+@@ -6,7 +6,7 @@
+ // stack scanning.
+ //
+ // We cannot rely on clang generating the function and right symbol mangling
+-// as `__attribite__((naked))` does not prevent clang from generating TSAN
++// as `__attribute__((naked))` does not prevent clang from generating TSAN
+ // function entry stubs (`__tsan_func_entry`). Even with
+ // `__attribute__((no_sanitize_thread)` annotation clang generates the entry
+ // stub.
+@@ -20,34 +20,47 @@
+ // on the stack and we push 72 bytes which maintains 16-byte stack alignment
+ // at the call.
+ // Source: https://docs.microsoft.com/en-us/cpp/build/x64-calling-convention
+-asm(".att_syntax                                          \n"
+-    ".globl PAPushAllRegistersAndIterateStack             \n"
+-    "PAPushAllRegistersAndIterateStack:                   \n"
++
++asm(".globl PushAllRegistersAndIterateStack             \n"
++    "PushAllRegistersAndIterateStack:                   \n"
+     // rbp is callee-saved. Maintain proper frame pointer for debugging.
+-    "  push %rbp                                          \n"
+-    "  mov %rsp, %rbp                                     \n"
++    "  push %rbp                                        \n"
++    "  mov %rsp, %rbp                                   \n"
+     // Dummy for alignment.
+-    "  push $0xCDCDCD                                     \n"
+-    "  push %rsi                                          \n"
+-    "  push %rdi                                          \n"
+-    "  push %rbx                                          \n"
+-    "  push %r12                                          \n"
+-    "  push %r13                                          \n"
+-    "  push %r14                                          \n"
+-    "  push %r15                                          \n"
++    "  push $0xCDCDCD                                   \n"
++    "  push %rsi                                        \n"
++    "  push %rdi                                        \n"
++    "  push %rbx                                        \n"
++    "  push %r12                                        \n"
++    "  push %r13                                        \n"
++    "  push %r14                                        \n"
++    "  push %r15                                        \n"
++    "  sub $160, %rsp                                   \n"
++    // Use aligned instrs as we are certain that the stack is properly aligned.
++    "  movdqa %xmm6, 144(%rsp)                          \n"
++    "  movdqa %xmm7, 128(%rsp)                          \n"
++    "  movdqa %xmm8, 112(%rsp)                          \n"
++    "  movdqa %xmm9, 96(%rsp)                           \n"
++    "  movdqa %xmm10, 80(%rsp)                          \n"
++    "  movdqa %xmm11, 64(%rsp)                          \n"
++    "  movdqa %xmm12, 48(%rsp)                          \n"
++    "  movdqa %xmm13, 32(%rsp)                          \n"
++    "  movdqa %xmm14, 16(%rsp)                          \n"
++    "  movdqa %xmm15, (%rsp)                            \n"
+     // Pass 1st parameter (rcx) unchanged (Stack*).
+     // Pass 2nd parameter (rdx) unchanged (StackVisitor*).
+     // Save 3rd parameter (r8; IterateStackCallback)
+-    "  mov %r8, %r9                                       \n"
++    "  mov %r8, %r9                                     \n"
+     // Pass 3rd parameter as rsp (stack pointer).
+-    "  mov %rsp, %r8                                      \n"
++    "  mov %rsp, %r8                                    \n"
+     // Call the callback.
+-    "  call *%r9                                          \n"
++    "  call *%r9                                        \n"
+     // Pop the callee-saved registers.
+-    "  add $64, %rsp                                      \n"
++    "  add $224, %rsp                                   \n"
+     // Restore rbp as it was used as frame pointer.
+-    "  pop %rbp                                           \n"
+-    "  ret                                                \n");
++    "  pop %rbp                                         \n"
++    "  ret                                              \n");
++
+ #endif
+ #else  // !_WIN64
+ 
 diff --git a/src/3rdparty/chromium/base/debug/handle_hooks_win.cc b/src/3rdparty/chromium/base/debug/handle_hooks_win.cc
-index eb07225..6cb10f9 100644
+index eb0722595e..6cb10f9679 100644
 --- a/src/3rdparty/chromium/base/debug/handle_hooks_win.cc
 +++ b/src/3rdparty/chromium/base/debug/handle_hooks_win.cc
 @@ -9,6 +9,8 @@
@@ -146,7 +226,7 @@ index eb07225..6cb10f9 100644
  #include "base/memory/raw_ptr.h"
  #include "base/numerics/safe_conversions.h"
 diff --git a/src/3rdparty/chromium/base/enterprise_util_win.cc b/src/3rdparty/chromium/base/enterprise_util_win.cc
-index 1c0965f..39d6ad4 100644
+index 1c0965f6bc..39d6ad4ef7 100644
 --- a/src/3rdparty/chromium/base/enterprise_util_win.cc
 +++ b/src/3rdparty/chromium/base/enterprise_util_win.cc
 @@ -16,14 +16,22 @@ bool IsManagedDevice() {
@@ -173,7 +253,7 @@ index 1c0965f..39d6ad4 100644
  
  }  // namespace base
 diff --git a/src/3rdparty/chromium/base/export_template.h b/src/3rdparty/chromium/base/export_template.h
-index 248d0d9..0914ffe 100644
+index 248d0d9e29..0914ffeb85 100644
 --- a/src/3rdparty/chromium/base/export_template.h
 +++ b/src/3rdparty/chromium/base/export_template.h
 @@ -138,8 +138,10 @@
@@ -188,7 +268,7 @@ index 248d0d9..0914ffe 100644
  #undef EXPORT_TEMPLATE_TEST
  #undef EXPORT_TEMPLATE_TEST_DEFAULT_DEFAULT
 diff --git a/src/3rdparty/chromium/base/lazy_instance.h b/src/3rdparty/chromium/base/lazy_instance.h
-index 865bb4f..31331c4 100644
+index 865bb4fbdc..31331c4b13 100644
 --- a/src/3rdparty/chromium/base/lazy_instance.h
 +++ b/src/3rdparty/chromium/base/lazy_instance.h
 @@ -173,7 +173,7 @@ class LazyInstance {
@@ -210,7 +290,7 @@ index 865bb4f..31331c4 100644
  #endif
  
 diff --git a/src/3rdparty/chromium/base/memory/aligned_memory.cc b/src/3rdparty/chromium/base/memory/aligned_memory.cc
-index 86dd238..9f5ad09 100644
+index 86dd238308..9f5ad094d3 100644
 --- a/src/3rdparty/chromium/base/memory/aligned_memory.cc
 +++ b/src/3rdparty/chromium/base/memory/aligned_memory.cc
 @@ -22,7 +22,7 @@ void* AlignedAlloc(size_t size, size_t alignment) {
@@ -223,7 +303,7 @@ index 86dd238..9f5ad09 100644
  #elif BUILDFLAG(IS_ANDROID)
    // Android technically supports posix_memalign(), but does not expose it in
 diff --git a/src/3rdparty/chromium/base/memory/aligned_memory.h b/src/3rdparty/chromium/base/memory/aligned_memory.h
-index 23bbf5c..5413284 100644
+index 23bbf5cd24..54132849fd 100644
 --- a/src/3rdparty/chromium/base/memory/aligned_memory.h
 +++ b/src/3rdparty/chromium/base/memory/aligned_memory.h
 @@ -18,7 +18,7 @@
@@ -245,7 +325,7 @@ index 23bbf5c..5413284 100644
  #else
    free(ptr);
 diff --git a/src/3rdparty/chromium/base/power_monitor/speed_limit_observer_win.cc b/src/3rdparty/chromium/base/power_monitor/speed_limit_observer_win.cc
-index 3cf82bc..9babc2a 100644
+index 3cf82bc6cb..9babc2ae9e 100644
 --- a/src/3rdparty/chromium/base/power_monitor/speed_limit_observer_win.cc
 +++ b/src/3rdparty/chromium/base/power_monitor/speed_limit_observer_win.cc
 @@ -24,7 +24,9 @@
@@ -259,7 +339,7 @@ index 3cf82bc..9babc2a 100644
  // We poll for new speed-limit values once every second.
  constexpr base::TimeDelta kSampleInterval = base::Seconds(1);
 diff --git a/src/3rdparty/chromium/base/process/memory_win.cc b/src/3rdparty/chromium/base/process/memory_win.cc
-index 059324c..84edeba 100644
+index 059324c1fc..84edeba5ec 100644
 --- a/src/3rdparty/chromium/base/process/memory_win.cc
 +++ b/src/3rdparty/chromium/base/process/memory_win.cc
 @@ -38,9 +38,13 @@ void EnableTerminationOnHeapCorruption() {
@@ -277,7 +357,7 @@ index 059324c..84edeba 100644
  
  bool UncheckedMalloc(size_t size, void** result) {
 diff --git a/src/3rdparty/chromium/base/strings/string_number_conversions_win.h b/src/3rdparty/chromium/base/strings/string_number_conversions_win.h
-index dd28d17..f3c8dc8 100644
+index dd28d177b2..f3c8dc8200 100644
 --- a/src/3rdparty/chromium/base/strings/string_number_conversions_win.h
 +++ b/src/3rdparty/chromium/base/strings/string_number_conversions_win.h
 @@ -5,6 +5,7 @@
@@ -289,7 +369,7 @@ index dd28d17..f3c8dc8 100644
  #include <string_view>
  
 diff --git a/src/3rdparty/chromium/base/trace_event/trace_logging_minimal_win.h b/src/3rdparty/chromium/base/trace_event/trace_logging_minimal_win.h
-index bf0f69e..4500f82 100644
+index bf0f69e2d4..4500f824d4 100644
 --- a/src/3rdparty/chromium/base/trace_event/trace_logging_minimal_win.h
 +++ b/src/3rdparty/chromium/base/trace_event/trace_logging_minimal_win.h
 @@ -263,11 +263,6 @@ class BASE_EXPORT TlmProvider {
@@ -316,8 +396,102 @@ index bf0f69e..4500f82 100644
  // Base class for field types.
  // It's expected that data (name, value) will outlive the TlmFieldBase object.
  class BASE_EXPORT TlmFieldBase {
+diff --git a/src/3rdparty/chromium/base/win/async_operation.h b/src/3rdparty/chromium/base/win/async_operation.h
+index 3123a526de..ae9bad6078 100644
+--- a/src/3rdparty/chromium/base/win/async_operation.h
++++ b/src/3rdparty/chromium/base/win/async_operation.h
+@@ -8,8 +8,8 @@
+ #include <unknwn.h>
+ 
+ #include <windows.foundation.h>
+-#include <wrl/async.h>
+-#include <wrl/client.h>
++#include <winrt/base.h>
++#include <asyncinfo.h>
+ 
+ #include <type_traits>
+ #include <utility>
+@@ -37,7 +37,7 @@ namespace win {
+ // Example usages:
+ //
+ // // Regular types
+-// auto regular_op = WRL::Make<base::win::AsyncOperation<int>>();
++// auto regular_op = winrt::make_self<base::win::AsyncOperation<int>>();
+ // auto cb = regular_op->callback();
+ // regular_op->put_Completed(...event handler...);
+ // ...
+@@ -50,20 +50,20 @@ namespace win {
+ // EXPECT_EQ(123, results);
+ //
+ // // Interface types
+-// auto interface_op = WRL::Make<base::win::AsyncOperation<FooBar*>>();
++// auto interface_op = winrt::make_self<base::win::AsyncOperation<FooBar*>>();
+ // auto cb = interface_op->callback();
+ // interface_op->put_Completed(...event handler...);
+ // ...
+ // // This will invoke the event handler.
+-// std::move(cb).Run(WRL::Make<IFooBarImpl>());
++// std::move(cb).Run(winrt::make<IFooBarImpl>());
+ // ...
+ // // Results can be queried:
+-// WRL::ComPtr<IFooBar> results;
++// winrt::com_ptr<IFooBar> results;
+ // interface_op->GetResults(&results);
+ // // |results| points to the provided IFooBarImpl instance.
+ //
+ // // Offloading a heavy computation:
+-// auto my_op = WRL::Make<base::win::AsyncOperation<FooBar*>>();
++// auto my_op = winrt::make_self<base::win::AsyncOperation<FooBar*>>();
+ // base::ThreadPool::PostTaskAndReplyWithResult(
+ //     base::BindOnce(MakeFooBar), my_op->callback());
+ 
+@@ -90,10 +90,8 @@ using AsyncOperationStorage = StorageType<AsyncOperationComplex<T>>;
+ 
+ template <class T>
+ class AsyncOperation
+-    : public Microsoft::WRL::RuntimeClass<
+-          Microsoft::WRL::RuntimeClassFlags<
+-              Microsoft::WRL::WinRt | Microsoft::WRL::InhibitRoOriginateError>,
+-          ABI::Windows::Foundation::IAsyncOperation<T>> {
++    : public winrt::implements<AsyncOperation<T>,
++                               ABI::Windows::Foundation::IAsyncOperation<T>> {
+  public:
+   using AbiT = internal::AsyncOperationAbi<T>;
+   using OptionalStorageT = internal::AsyncOperationOptionalStorage<T>;
+@@ -122,7 +120,8 @@ class AsyncOperation
+   }
+   IFACEMETHODIMP get_Completed(Handler** handler) override {
+     DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
+-    return handler_.CopyTo(handler);
++    handler_.copy_to(handler);
++    return S_OK;
+   }
+   IFACEMETHODIMP GetResults(AbiT* results) override {
+     DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
+@@ -137,7 +136,11 @@ class AsyncOperation
+ 
+  private:
+   void InvokeCompletedHandler() {
++#if defined(__MINGW32__)
++    handler_->Invoke(this, AsyncStatus::Completed);
++#else
+     handler_->Invoke(this, ABI::Windows::Foundation::AsyncStatus::Completed);
++#endif    
+   }
+ 
+   void OnResult(StorageT result) {
+@@ -148,7 +151,7 @@ class AsyncOperation
+   }
+ 
+   ResultCallback callback_;
+-  Microsoft::WRL::ComPtr<Handler> handler_;
++  winrt::com_ptr<Handler> handler_;
+   OptionalStorageT results_;
+ 
+   THREAD_CHECKER(thread_checker_);
+
 diff --git a/src/3rdparty/chromium/base/win/com_init_balancer.h b/src/3rdparty/chromium/base/win/com_init_balancer.h
-index 571f2d7..fd3f6ce 100644
+index 571f2d75bc..fd3f6ce28b 100644
 --- a/src/3rdparty/chromium/base/win/com_init_balancer.h
 +++ b/src/3rdparty/chromium/base/win/com_init_balancer.h
 @@ -7,7 +7,9 @@
@@ -371,7 +545,7 @@ index 571f2d7..fd3f6ce 100644
    const DWORD co_init_;
  
 diff --git a/src/3rdparty/chromium/base/win/core_winrt_util.h b/src/3rdparty/chromium/base/win/core_winrt_util.h
-index 79124a8..e98edac 100644
+index 79124a8569..e98edac87c 100644
 --- a/src/3rdparty/chromium/base/win/core_winrt_util.h
 +++ b/src/3rdparty/chromium/base/win/core_winrt_util.h
 @@ -28,6 +28,7 @@ BASE_EXPORT HRESULT RoActivateInstance(HSTRING class_id,
@@ -391,7 +565,7 @@ index 79124a8..e98edac 100644
  
  }  // namespace base::win
 diff --git a/src/3rdparty/chromium/base/win/post_async_results.h b/src/3rdparty/chromium/base/win/post_async_results.h
-index 70e132c..2f33d64 100644
+index 70e132c0b9..2f33d6441a 100644
 --- a/src/3rdparty/chromium/base/win/post_async_results.h
 +++ b/src/3rdparty/chromium/base/win/post_async_results.h
 @@ -5,6 +5,8 @@
@@ -411,7 +585,7 @@ index 70e132c..2f33d64 100644
 +
  #endif  // BASE_WIN_POST_ASYNC_RESULTS_H_
 diff --git a/src/3rdparty/chromium/base/win/propvarutil.h b/src/3rdparty/chromium/base/win/propvarutil.h
-index 41f9659..69809ba 100644
+index 41f965972c..69809baf93 100644
 --- a/src/3rdparty/chromium/base/win/propvarutil.h
 +++ b/src/3rdparty/chromium/base/win/propvarutil.h
 @@ -11,7 +11,11 @@
@@ -427,7 +601,7 @@ index 41f9659..69809ba 100644
  // Undefine the poisonous defines
  #include "base/win/windows_undefines.inc"  // NOLINT(build/include)
 diff --git a/src/3rdparty/chromium/base/win/scoped_com_initializer.cc b/src/3rdparty/chromium/base/win/scoped_com_initializer.cc
-index 4c26c94..2effe1f 100644
+index 4c26c9423a..2effe1f978 100644
 --- a/src/3rdparty/chromium/base/win/scoped_com_initializer.cc
 +++ b/src/3rdparty/chromium/base/win/scoped_com_initializer.cc
 @@ -4,7 +4,9 @@
@@ -457,7 +631,7 @@ index 4c26c94..2effe1f 100644
  
  }  // namespace win
 diff --git a/src/3rdparty/chromium/base/win/scoped_variant.cc b/src/3rdparty/chromium/base/win/scoped_variant.cc
-index c4b2d06..801b427 100644
+index c4b2d06e5f..801b4274d3 100644
 --- a/src/3rdparty/chromium/base/win/scoped_variant.cc
 +++ b/src/3rdparty/chromium/base/win/scoped_variant.cc
 @@ -107,10 +107,15 @@ VARIANT* ScopedVariant::Receive() {
@@ -505,7 +679,7 @@ index c4b2d06..801b427 100644
      var_.vt = VT_EMPTY;
    }
 diff --git a/src/3rdparty/chromium/base/win/shlwapi.h b/src/3rdparty/chromium/base/win/shlwapi.h
-index 2ca59ee..8ad4a59 100644
+index 2ca59ee9ad..8ad4a59a5c 100644
 --- a/src/3rdparty/chromium/base/win/shlwapi.h
 +++ b/src/3rdparty/chromium/base/win/shlwapi.h
 @@ -11,7 +11,11 @@
@@ -521,7 +695,7 @@ index 2ca59ee..8ad4a59 100644
  // Undefine the poisonous defines
  #include "base/win/windows_undefines.inc"  // NOLINT(build/include)
 diff --git a/src/3rdparty/chromium/base/win/shortcut.cc b/src/3rdparty/chromium/base/win/shortcut.cc
-index 967e130..aa4b19d 100644
+index 967e130e82..aa4b19dfdb 100644
 --- a/src/3rdparty/chromium/base/win/shortcut.cc
 +++ b/src/3rdparty/chromium/base/win/shortcut.cc
 @@ -179,6 +179,7 @@ bool CreateOrUpdateShortcutLink(const FilePath& shortcut_path,
@@ -557,7 +731,7 @@ index 967e130..aa4b19d 100644
  
    return true;
 diff --git a/src/3rdparty/chromium/base/win/sphelper.h b/src/3rdparty/chromium/base/win/sphelper.h
-index 649dcb0..bc023d3 100644
+index 649dcb017c..bc023d333b 100644
 --- a/src/3rdparty/chromium/base/win/sphelper.h
 +++ b/src/3rdparty/chromium/base/win/sphelper.h
 @@ -11,7 +11,11 @@
@@ -573,7 +747,7 @@ index 649dcb0..bc023d3 100644
  // Undefine the poisonous defines
  #include "base/win/windows_undefines.inc"  // NOLINT(build/include)
 diff --git a/src/3rdparty/chromium/base/win/variant_vector.h b/src/3rdparty/chromium/base/win/variant_vector.h
-index 41ff85f..ed70a97 100644
+index 41ff85f349..ed70a978d2 100644
 --- a/src/3rdparty/chromium/base/win/variant_vector.h
 +++ b/src/3rdparty/chromium/base/win/variant_vector.h
 @@ -84,20 +84,6 @@ class BASE_EXPORT VariantVector final {
@@ -619,7 +793,7 @@ index 41ff85f..ed70a97 100644
  }  // namespace base
  
 diff --git a/src/3rdparty/chromium/base/win/vector.h b/src/3rdparty/chromium/base/win/vector.h
-index 7ec11da..cd8d5c3 100644
+index 7ec11dab45..cd8d5c347d 100644
 --- a/src/3rdparty/chromium/base/win/vector.h
 +++ b/src/3rdparty/chromium/base/win/vector.h
 @@ -5,6 +5,7 @@
@@ -638,7 +812,7 @@ index 7ec11da..cd8d5c3 100644
 +
  #endif  // BASE_WIN_VECTOR_H_
 diff --git a/src/3rdparty/chromium/base/win/win_util.cc b/src/3rdparty/chromium/base/win/win_util.cc
-index 2e0d6cd..c2dd667 100644
+index 2e0d6cdefa..c2dd6675f0 100644
 --- a/src/3rdparty/chromium/base/win/win_util.cc
 +++ b/src/3rdparty/chromium/base/win/win_util.cc
 @@ -20,7 +20,9 @@
@@ -746,8 +920,20 @@ index 2e0d6cd..c2dd667 100644
  }
  
  void EnableHighDPISupport() {
+diff --git a/src/3rdparty/chromium/base/win/windows_h_disallowed.h b/src/3rdparty/chromium/base/win/windows_h_disallowed.h
+index 56468469c9..00cc5bd5c5 100644
+--- a/src/3rdparty/chromium/base/win/windows_h_disallowed.h
++++ b/src/3rdparty/chromium/base/win/windows_h_disallowed.h
+@@ -21,6 +21,6 @@
+ // no-include-guard-because-multiply-included
+ // NOLINT(build/header_guard)
+ 
+-#if defined(_WINDOWS_)
++#if defined(_WINDOWS_) && !defined(__MINGW32__)
+ #error Windows.h was included unexpectedly. See comment above for details.
+ #endif
 diff --git a/src/3rdparty/chromium/base/win/windows_types.h b/src/3rdparty/chromium/base/win/windows_types.h
-index ad294c6..3603342 100644
+index ad294c65d0..3603342faf 100644
 --- a/src/3rdparty/chromium/base/win/windows_types.h
 +++ b/src/3rdparty/chromium/base/win/windows_types.h
 @@ -11,6 +11,8 @@
@@ -909,7 +1095,7 @@ index ad294c6..3603342 100644
  #define CreateDirectory CreateDirectoryW
  #define CreateFile CreateFileW
 diff --git a/src/3rdparty/chromium/base/win/windows_version.cc b/src/3rdparty/chromium/base/win/windows_version.cc
-index 42c07eb..5608c1f 100644
+index 42c07ebc30..5608c1f60c 100644
 --- a/src/3rdparty/chromium/base/win/windows_version.cc
 +++ b/src/3rdparty/chromium/base/win/windows_version.cc
 @@ -23,7 +23,7 @@
@@ -921,8 +1107,83 @@ index 42c07eb..5608c1f 100644
  #error VS 2017 Update 3.2 or higher is required
  #endif
  
+diff --git a/src/3rdparty/chromium/base/win/winrt_foundation_helpers.h b/src/3rdparty/chromium/base/win/winrt_foundation_helpers.h
+index e5154c0d13..79f33464ad 100644
+--- a/src/3rdparty/chromium/base/win/winrt_foundation_helpers.h
++++ b/src/3rdparty/chromium/base/win/winrt_foundation_helpers.h
+@@ -11,7 +11,7 @@
+ #define BASE_WIN_WINRT_FOUNDATION_HELPERS_H_
+ 
+ #include <windows.foundation.h>
+-#include <wrl/client.h>
++#include <winrt/base.h>
+ 
+ #include <algorithm>
+ #include <optional>
+@@ -65,7 +65,7 @@ using LogicalType =
+ template <typename TComplex>
+ using StorageType = std::conditional_t<
+     std::is_convertible_v<AbiType<TComplex>, IUnknown*>,
+-    Microsoft::WRL::ComPtr<std::remove_pointer_t<AbiType<TComplex>>>,
++    winrt::com_ptr<std::remove_pointer_t<AbiType<TComplex>>>,
+     AbiType<TComplex>>;
+ 
+ // Similar to StorageType, but returns a std::optional in case underlying Abi
+@@ -73,7 +73,7 @@ using StorageType = std::conditional_t<
+ template <typename TComplex>
+ using OptionalStorageType = std::conditional_t<
+     std::is_convertible_v<AbiType<TComplex>, IUnknown*>,
+-    Microsoft::WRL::ComPtr<std::remove_pointer_t<AbiType<TComplex>>>,
++    winrt::com_ptr<std::remove_pointer_t<AbiType<TComplex>>>,
+     std::optional<AbiType<TComplex>>>;
+ 
+ template <typename T>
+@@ -83,8 +83,9 @@ HRESULT CopyTo(const T& value, T* ptr) {
+ }
+ 
+ template <typename T>
+-HRESULT CopyTo(const Microsoft::WRL::ComPtr<T>& value, T** ptr) {
+-  return value.CopyTo(ptr);
++HRESULT CopyTo(const winrt::com_ptr<T>& value, T** ptr) {
++  value.copy_to(ptr);
++  return S_OK;
+ }
+ 
+ template <typename T>
+@@ -103,7 +104,7 @@ HRESULT CopyN(typename std::vector<T>::const_iterator first,
+ 
+ template <typename T>
+ HRESULT CopyN(
+-    typename std::vector<Microsoft::WRL::ComPtr<T>>::const_iterator first,
++    typename std::vector<winrt::com_ptr<T>>::const_iterator first,
+     unsigned count,
+     T** result) {
+   for (unsigned i = 0; i < count; ++i) {
+@@ -125,8 +126,8 @@ bool IsEqual(const T& lhs, const T& rhs) {
+ }
+ 
+ template <typename T>
+-bool IsEqual(const Microsoft::WRL::ComPtr<T>& com_ptr, const T* ptr) {
+-  return com_ptr.Get() == ptr;
++bool IsEqual(const winrt::com_ptr<T>& com_ptr, const T* ptr) {
++  return com_ptr.get() == ptr;
+ }
+ 
+ struct Less {
+@@ -138,9 +139,9 @@ struct Less {
+   }
+ 
+   template <typename T>
+-  bool operator()(const Microsoft::WRL::ComPtr<T>& com_ptr,
++  bool operator()(const winrt::com_ptr<T>& com_ptr,
+                   const T* ptr) const {
+-    return com_ptr.Get() < ptr;
++    return com_ptr.get() < ptr;
+   }
+ 
+   template <typename T>
 diff --git a/src/3rdparty/chromium/base/win/wrapped_window_proc.h b/src/3rdparty/chromium/base/win/wrapped_window_proc.h
-index 5cacecb..da200a2 100644
+index 5cacecb4b8..da200a2664 100644
 --- a/src/3rdparty/chromium/base/win/wrapped_window_proc.h
 +++ b/src/3rdparty/chromium/base/win/wrapped_window_proc.h
 @@ -13,6 +13,7 @@

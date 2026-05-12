@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/third_party/perfetto/gn/BUILD.gn b/src/3rdparty/chromium/third_party/perfetto/gn/BUILD.gn
-index 6ac0622..b3fa98c 100644
+index 6ac0622901..b3fa98c051 100644
 --- a/src/3rdparty/chromium/third_party/perfetto/gn/BUILD.gn
 +++ b/src/3rdparty/chromium/third_party/perfetto/gn/BUILD.gn
 @@ -319,7 +319,7 @@ config("protobuf_gen_config") {
@@ -12,7 +12,7 @@ index 6ac0622..b3fa98c 100644
      cflags += [
        "/wd4838",  # conversion from 'unsigned long' to 'int' requires a
 diff --git a/src/3rdparty/chromium/third_party/perfetto/gn/perfetto.gni b/src/3rdparty/chromium/third_party/perfetto/gn/perfetto.gni
-index 5fd06f7..aef84a7 100644
+index 5fd06f70de..5860a5417e 100644
 --- a/src/3rdparty/chromium/third_party/perfetto/gn/perfetto.gni
 +++ b/src/3rdparty/chromium/third_party/perfetto/gn/perfetto.gni
 @@ -395,9 +395,11 @@ declare_args() {
@@ -29,7 +29,7 @@ index 5fd06f7..aef84a7 100644
    perfetto_isystem_cflag = "-isystem"
  }
 diff --git a/src/3rdparty/chromium/third_party/perfetto/gn/standalone/BUILD.gn b/src/3rdparty/chromium/third_party/perfetto/gn/standalone/BUILD.gn
-index 254a157..319386f 100644
+index 254a15757c..319386f72e 100644
 --- a/src/3rdparty/chromium/third_party/perfetto/gn/standalone/BUILD.gn
 +++ b/src/3rdparty/chromium/third_party/perfetto/gn/standalone/BUILD.gn
 @@ -40,7 +40,7 @@ hermetic_clang_suppressions = [ "-Wno-c99-designator" ]
@@ -202,7 +202,7 @@ index 254a157..319386f 100644
      ldflags = [ "-dead_strip" ]
    } else if (is_qnx) {
 diff --git a/src/3rdparty/chromium/third_party/perfetto/gn/standalone/toolchain/llvm.gni b/src/3rdparty/chromium/third_party/perfetto/gn/standalone/toolchain/llvm.gni
-index 13bae47..8d924f4 100644
+index 13bae477f0..8d924f484e 100644
 --- a/src/3rdparty/chromium/third_party/perfetto/gn/standalone/toolchain/llvm.gni
 +++ b/src/3rdparty/chromium/third_party/perfetto/gn/standalone/toolchain/llvm.gni
 @@ -45,7 +45,7 @@ if (is_linux_host) {
@@ -215,7 +215,7 @@ index 13bae47..8d924f4 100644
      # Use the toolchain pulled by //tools/install-build-deps. This tracks
      # chromium's llvm dist.
 diff --git a/src/3rdparty/chromium/third_party/perfetto/gn/standalone/toolchain/msvc.gni b/src/3rdparty/chromium/third_party/perfetto/gn/standalone/toolchain/msvc.gni
-index 7ec7313..d809c14 100644
+index 7ec7313652..d809c14090 100644
 --- a/src/3rdparty/chromium/third_party/perfetto/gn/standalone/toolchain/msvc.gni
 +++ b/src/3rdparty/chromium/third_party/perfetto/gn/standalone/toolchain/msvc.gni
 @@ -15,7 +15,7 @@
@@ -228,7 +228,7 @@ index 7ec7313..d809c14 100644
  
    # The output looks like this (without the line number "N:" part):
 diff --git a/src/3rdparty/chromium/third_party/perfetto/include/perfetto/ext/base/sys_types.h b/src/3rdparty/chromium/third_party/perfetto/include/perfetto/ext/base/sys_types.h
-index fa04a63..2f584a5 100644
+index fa04a63c30..2f584a5841 100644
 --- a/src/3rdparty/chromium/third_party/perfetto/include/perfetto/ext/base/sys_types.h
 +++ b/src/3rdparty/chromium/third_party/perfetto/include/perfetto/ext/base/sys_types.h
 @@ -27,7 +27,7 @@
@@ -241,7 +241,7 @@ index fa04a63..2f584a5 100644
  using uid_t = int;
  using pid_t = int;
 diff --git a/src/3rdparty/chromium/third_party/perfetto/src/base/string_utils.cc b/src/3rdparty/chromium/third_party/perfetto/src/base/string_utils.cc
-index 2defa73..ece8d4e 100644
+index 2defa73bbe..ece8d4e00d 100644
 --- a/src/3rdparty/chromium/third_party/perfetto/src/base/string_utils.cc
 +++ b/src/3rdparty/chromium/third_party/perfetto/src/base/string_utils.cc
 @@ -21,6 +21,7 @@
@@ -252,3 +252,16 @@ index 2defa73..ece8d4e 100644
  
  #if PERFETTO_BUILDFLAG(PERFETTO_OS_APPLE)
  #include <xlocale.h>
+diff --git a/src/3rdparty/chromium/third_party/perfetto/include/perfetto/protozero/message_arena.h b/src/3rdparty/chromium/third_party/perfetto/include/perfetto/protozero/message_arena.h
+index 8253ba73a0..e3309a89e5 100644
+--- a/src/3rdparty/chromium/third_party/perfetto/include/perfetto/protozero/message_arena.h
++++ b/src/3rdparty/chromium/third_party/perfetto/include/perfetto/protozero/message_arena.h
+@@ -66,7 +66,7 @@ class PERFETTO_EXPORT_COMPONENT MessageArena {
+   // but could happen if some client does some overly clever std::move() trick).
+   void Reset() {
+     PERFETTO_DCHECK(!blocks_.empty());
+-    blocks_.resize(1);
++    blocks_.erase_after(blocks_.cbegin(), blocks_.cend());
+     auto& block = blocks_.front();
+     block.entries = 0;
+     PERFETTO_ASAN_POISON(block.storage, sizeof(block.storage));

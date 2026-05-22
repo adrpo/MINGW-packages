@@ -48,8 +48,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_BUILD_DIR = (
     SCRIPT_DIR / "src" / "build-UCRT64" / "src" / "core" / "RelWithDebInfo" / "AMD64"
 )
-DEFAULT_STRIP = "C:/msys64/ucrt64/bin/strip.exe"
-DEFAULT_AR = "C:/msys64/ucrt64/bin/ar.exe"
+DEFAULT_STRIP = "strip.exe"
+DEFAULT_AR = "ar.exe"
 DEFAULT_KEEP_PREFIXES: tuple[str, ...] = ()
 DEFAULT_KEEP_ARCHIVES: tuple[str, ...] = ()
 AR_BATCH = 64

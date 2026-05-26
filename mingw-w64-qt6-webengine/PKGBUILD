@@ -32,8 +32,11 @@ depends=("${MINGW_PACKAGE_PREFIX}-freetype"
          "${MINGW_PACKAGE_PREFIX}-snappy"
          "${MINGW_PACKAGE_PREFIX}-zlib")
 makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
+             "${MINGW_PACKAGE_PREFIX}-clang"
              "${MINGW_PACKAGE_PREFIX}-cmake"
+             "${MINGW_PACKAGE_PREFIX}-cppwinrt"
              "${MINGW_PACKAGE_PREFIX}-directx-headers"
+             "${MINGW_PACKAGE_PREFIX}-gcc-libs"
              "${MINGW_PACKAGE_PREFIX}-gperf"
              "${MINGW_PACKAGE_PREFIX}-ninja"
              "${MINGW_PACKAGE_PREFIX}-nodejs"
@@ -85,8 +88,22 @@ source=("https://download.qt.io/official_releases/qt/${pkgver%.*}/${pkgver}/subm
         0022-chromium-gpu-mingw-d3d-compile-fixes.patch
         0023-chromium-gpu-mingw-d3d-decls.patch
         0024-chromium-ui-mingw-d3d-fence-link.patch
+        0025-chromium-clang-mingw-fcomplete-member-pointers.patch
+        0026-chromium-skia-clang-f16c-vcvtph2ps256.patch
+        0027-chromium-clang-mingw-libatomic.patch
+        0028-chromium-v8-clang-mingw-icu-template-stubs.patch
+        0029-chromium-build-config-clang-mingw-libstdcxx-catch.patch
+        0030-chromium-base-protected-memory-disable-mingw-clang.patch
+        0031-chromium-precompile-add-future-forward-list.patch
         .strip-debug-non-patched.py)
 sha256sums=('SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -190,6 +207,27 @@ prepare() {
   apply_patch_with_msg \
     0024-chromium-ui-mingw-d3d-fence-link.patch
 
+  apply_patch_with_msg \
+    0025-chromium-clang-mingw-fcomplete-member-pointers.patch
+
+  apply_patch_with_msg \
+    0026-chromium-skia-clang-f16c-vcvtph2ps256.patch
+
+  apply_patch_with_msg \
+    0027-chromium-clang-mingw-libatomic.patch
+
+  apply_patch_with_msg \
+    0028-chromium-v8-clang-mingw-icu-template-stubs.patch
+
+  apply_patch_with_msg \
+    0029-chromium-build-config-clang-mingw-libstdcxx-catch.patch
+
+  apply_patch_with_msg \
+    0030-chromium-base-protected-memory-disable-mingw-clang.patch
+
+  apply_patch_with_msg \
+    0031-chromium-precompile-add-future-forward-list.patch
+
 }
 
 build() {
@@ -204,12 +242,17 @@ build() {
   #
   # NOTE: --compress-debug-sections=zlib is ELF-only; GAS and the linker
   # both reject it on PE/COFF targets, so we don't pass any compress flag.
-  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+  # Force GNU binutils objcopy: llvm-objcopy chokes on Qt6WebEngineCore.dll
+  # with "invalid SymbolTableIndex" during the --only-keep-debug step that
+  # QtSeparateDebugInfo.cmake runs after the link. GNU objcopy from
+  # mingw-w64 binutils handles the same DLL fine.
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" CC="clang" CXX="clang++" \
   cmake -Wno-dev \
     -GNinja \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DQT_GENERATE_SBOM=OFF \
     -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+    -DCMAKE_OBJCOPY=${MINGW_PREFIX}/bin/objcopy.exe \
     -DPython3_EXECUTABLE=${MINGW_PREFIX}/bin/python \
     -DCHROMIUM_DEBUG_STRIP_TOOL="${srcdir}/.strip-debug-non-patched.py" \
     -DCHROMIUM_DEBUG_STRIP_BUILD_DIR="${srcdir}/build-${MSYSTEM}/src/core/RelWithDebInfo/AMD64" \

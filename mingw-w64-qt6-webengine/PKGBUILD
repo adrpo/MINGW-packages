@@ -249,14 +249,11 @@ build() {
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" CC="clang" CXX="clang++" \
   cmake -Wno-dev \
     -GNinja \
-    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    -DCMAKE_BUILD_TYPE=Release \
     -DQT_GENERATE_SBOM=OFF \
     -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
     -DCMAKE_OBJCOPY=${MINGW_PREFIX}/bin/objcopy.exe \
     -DPython3_EXECUTABLE=${MINGW_PREFIX}/bin/python \
-    -DCHROMIUM_DEBUG_STRIP_TOOL="${srcdir}/.strip-debug-non-patched.py" \
-    -DCHROMIUM_DEBUG_STRIP_BUILD_DIR="${srcdir}/build-${MSYSTEM}/src/core/RelWithDebInfo/AMD64" \
-    -DCHROMIUM_DEBUG_STRIP_KEEP_ARCHIVES="obj/components/viz/service/libservice.a;libQtWebEngineCoreSandbox.a;" \
     -DQT_FEATURE_qtpdf_build=OFF \
     -DQT_FEATURE_webengine_system_icu=ON \
     -DQT_SHOW_EXTRA_IDE_SOURCES=OFF \

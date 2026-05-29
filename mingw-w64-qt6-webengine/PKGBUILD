@@ -260,7 +260,7 @@ build() {
     -S ${_pkgfn} \
     -B build-${MSYSTEM}
 
-  cmake --build build-${MSYSTEM} --parallel 2
+  cmake --build build-${MSYSTEM} --parallel 3
 }
 
 package_qt6-webengine() {

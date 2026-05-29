@@ -228,6 +228,8 @@ prepare() {
   apply_patch_with_msg \
     0031-chromium-precompile-add-future-forward-list.patch
 
+  rm -rf ../../${_pkgfn}.tar.xz
+
 }
 
 build() {
